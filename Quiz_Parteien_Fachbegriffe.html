@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Fachbegriffe – Parteien in der Demokratie</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { height: 100%; overflow: hidden; }
+body { font-family: system-ui, sans-serif; background: #ffffff; color: #1a1a1a; display: flex; justify-content: center; align-items: flex-start; }
+#scaleWrapper { padding: 1rem 1.5rem; transform-origin: top center; opacity: 0; }
+.quiz-header { text-align: center; margin-bottom: 0.4rem; }
+.quiz-header h1 { font-size: 1.4rem; font-weight: 600; margin-bottom: 0.1rem; }
+.score-bar { display: flex; justify-content: center; gap: 1.5rem; margin-bottom: 0.4rem; font-size: 0.95rem; color: #555; }
+.score-bar b { color: #1a1a1a; }
+.col-header { display: flex; gap: 0.35rem; margin: 0 auto 0.15rem; width: fit-content; }
+.col-header span { font-size: 0.75rem; color: #888; text-align: center; }
+.quiz-outer { margin: 0 auto 0.6rem; width: fit-content; }
+.pair-row { display: flex; gap: 0.35rem; margin-bottom: 0.2rem; align-items: center; justify-content: flex-start; }
+.def-card { flex-shrink: 0; white-space: nowrap; background: #f3f4f6; border: 1px solid #d1d5db; border-radius: 6px; padding: 0.28rem 0.9rem; font-size: 1.1rem; display: flex; align-items: center; min-height: 36px; line-height: 1.3; }
+.drop-zone { flex-shrink: 0; white-space: nowrap; border: 2px dashed #9ca3af; border-radius: 6px; padding: 0.28rem 0.7rem; font-size: 1.1rem; min-height: 36px; display: flex; align-items: center; justify-content: center; background: #fff; cursor: pointer; transition: border-color 0.15s, background 0.15s; }
+.drop-zone.ready         { border-color: #1a56db; background: #e8f0fe; }
+.drop-zone.matched-ok    { border: 2px solid #1e3a5f; background: #eaf0f7; color: #1e3a5f; font-weight: 500; cursor: default; pointer-events: none; }
+.drop-zone.matched-wrong { border: 2px solid #dc2626; background: #fef2f2; animation: shake 0.35s ease; }
+@keyframes shake { 0%,100% { transform: translateX(0); } 25% { transform: translateX(-5px); } 75% { transform: translateX(5px); } }
+.chip-cell { display: flex; align-items: stretch; flex-shrink: 0; }
+.chip { flex-shrink: 0; white-space: nowrap; background: #1e3a5f; color: #fff; border-radius: 6px; padding: 0.28rem 0.8rem; font-size: 1.1rem; cursor: pointer; user-select: none; min-height: 36px; display: flex; align-items: center; line-height: 1.25; transition: background 0.12s, transform 0.1s, box-shadow 0.12s; }
+.chip:hover    { background: #162d4a; }
+.chip.selected { background: #1a56db; transform: scale(1.03); box-shadow: 0 4px 14px rgba(26,86,219,0.35); }
+.chip.placed   { visibility: hidden; pointer-events: none; }
+.controls { display: flex; justify-content: center; margin-top: 0.5rem; }
+.controls button { font-size: 1rem; padding: 0.5rem 1.3rem; border-radius: 8px; border: 1px solid #ccc; background: #fff; color: #555; cursor: pointer; }
+.controls button:hover { border-color: #1a56db; color: #1a56db; }
+</style>
+</head>
+<body>
+<div id="scaleWrapper">
+<div class="quiz-header">
+  <h1>Fachbegriffe – Parteien in der Demokratie</h1>
+</div>
+<div class="score-bar">
+  <span>Correct: <b id="cnt-c">0</b></span>
+  <span>Wrong: <b id="cnt-w">0</b></span>
+  <span>Left: <b id="cnt-l">0</b></span>
+</div>
+<div class="col-header">
+  <span>Definition</span><span></span><span>Fachbegriff</span>
+</div>
+<div class="quiz-outer" id="rows-0"></div>
+<div class="controls">
+  <button onclick="resetAll()">↺ Reset</button>
+</div>
+</div>
+<script>
+// [Definition, Fachbegriff] — Definition fix links, Fachbegriffe als Chips rechts
+const PAIRS = [
+ [
+  "Meinungen bilden und in die Politik einbringen",
+  "politische Willensbildung"
+ ],
+ [
+  "Alle Parteien eines Landes und ihr Zusammenspiel",
+  "Parteiensystem"
+ ],
+ [
+  "Gruppe, die sich für ein einzelnes Anliegen einsetzt",
+  "Bürgerinitiative"
+ ],
+ [
+  "Etwas Wichtiges, das man erreichen möchte",
+  "Anliegen"
+ ],
+ [
+  "Große, schnelle Veränderung",
+  "Umbruch"
+ ],
+ [
+  "Alle Politiker, die politische Ämter übernehmen",
+  "politisches Personal"
+ ],
+ [
+  "Schriftliche Ziele, für die eine Partei steht",
+  "Parteiprogramm"
+ ],
+ [
+  "Geld und Besitz offen zeigen, nichts verstecken",
+  "offenlegen"
+ ],
+ [
+  "Viele Menschen, die gemeinsam etwas im Land ändern wollen",
+  "soziale Bewegungen"
+ ],
+ [
+  "Zustand, in dem etwas fest bleibt und nicht wackelt",
+  "Stabilität"
+ ]
+];
+
+let correct = 0, wrong = 0, selectedChip = null;
+
+function shuffle(arr) {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+function deselectAll() {
+  document.querySelectorAll('.chip.selected').forEach(c => c.classList.remove('selected'));
+  document.querySelectorAll('.drop-zone.ready').forEach(z => z.classList.remove('ready'));
+  selectedChip = null;
+}
+
+function updateScore() {
+  document.getElementById('cnt-c').textContent = correct;
+  document.getElementById('cnt-w').textContent = wrong;
+  const left = document.querySelectorAll('.drop-zone:not(.matched-ok)').length;
+  document.getElementById('cnt-l').textContent = left;
+}
+
+function fitToScreen() {
+  const wrapper = document.getElementById('scaleWrapper');
+  wrapper.style.transform = 'none';
+  requestAnimationFrame(() => {
+    const contentWidth = wrapper.scrollWidth;
+    const contentHeight = wrapper.scrollHeight;
+    const scale = Math.min(1, window.innerWidth / contentWidth, window.innerHeight / contentHeight);
+    wrapper.style.transform = `scale(${scale})`;
+    wrapper.style.opacity = '1';
+  });
+}
+
+function buildTab(pairs, containerId) {
+  // Chips geshuffelt, aber nie in der Zeile ihrer eigenen Definition starten
+  let shuffled;
+  do { shuffled = shuffle(pairs.map(p => p[1])); }
+  while (shuffled.some((t, i) => t === pairs[i][1]));
+  const container = document.getElementById(containerId);
+  container.innerHTML = '';
+
+  pairs.forEach(([def, term], i) => {
+    const row = document.createElement('div');
+    row.className = 'pair-row';
+
+    const defCard = document.createElement('div');
+    defCard.className = 'def-card';
+    defCard.textContent = def;
+
+    const drop = document.createElement('div');
+    drop.className = 'drop-zone';
+    drop.dataset.answer = term;
+    drop.addEventListener('click', () => {
+      if (!selectedChip) return;
+      if (selectedChip.dataset.value === drop.dataset.answer) {
+        drop.textContent = selectedChip.dataset.value;
+        drop.classList.add('matched-ok');
+        drop.classList.remove('ready');
+        selectedChip.classList.add('placed');
+        correct++;
+        updateScore();
+        deselectAll();
+      } else {
+        wrong++;
+        drop.classList.add('matched-wrong');
+        setTimeout(() => drop.classList.remove('matched-wrong'), 400);
+        updateScore();
+      }
+    });
+
+    const chipCell = document.createElement('div');
+    chipCell.className = 'chip-cell';
+    const chip = document.createElement('div');
+    chip.className = 'chip';
+    chip.textContent = shuffled[i];
+    chip.dataset.value = shuffled[i];
+    chip.addEventListener('click', () => {
+      if (chip.classList.contains('placed')) return;
+      if (chip.classList.contains('selected')) { deselectAll(); return; }
+      deselectAll();
+      chip.classList.add('selected');
+      chip.closest('.quiz-outer').querySelectorAll('.drop-zone:not(.matched-ok)').forEach(z => z.classList.add('ready'));
+      selectedChip = chip;
+    });
+    chipCell.appendChild(chip);
+
+    row.appendChild(defCard);
+    row.appendChild(drop);
+    row.appendChild(chipCell);
+    container.appendChild(row);
+  });
+
+  requestAnimationFrame(() => {
+    const defs = [...container.querySelectorAll('.def-card')];
+    const chips = [...container.querySelectorAll('.chip')];
+    const drops = [...container.querySelectorAll('.drop-zone')];
+    const maxDefW = Math.ceil(Math.max(...defs.map(d => d.getBoundingClientRect().width)));
+    const maxChipW = Math.ceil(Math.max(...chips.map(c => c.getBoundingClientRect().width)));
+    defs.forEach(d => d.style.width = maxDefW + 'px');
+    chips.forEach(c => c.style.width = maxChipW + 'px');
+    drops.forEach(d => d.style.width = maxChipW + 'px');
+    const headerSpans = document.querySelectorAll('.col-header span');
+    if (headerSpans[0]) headerSpans[0].style.width = maxDefW + 'px';
+    if (headerSpans[2]) headerSpans[2].style.width = maxChipW + 'px';
+    fitToScreen();
+  });
+}
+
+function resetAll() {
+  correct = 0; wrong = 0; selectedChip = null;
+  buildTab(PAIRS, 'rows-0');
+  updateScore();
+}
+
+buildTab(PAIRS, 'rows-0');
+updateScore();
+
+document.addEventListener('click', e => {
+  if (!e.target.closest('.chip') && !e.target.closest('.drop-zone')) deselectAll();
+});
+window.addEventListener('load', () => setTimeout(fitToScreen, 50));
+window.addEventListener('resize', () => setTimeout(fitToScreen, 50));
+</script>
+</body>
+</html>
