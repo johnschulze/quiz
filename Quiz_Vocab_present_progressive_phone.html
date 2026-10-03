@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Vocabulary – Sport</title>
+<title>Vocabulary – the present progressive</title>
 <style>
 * { box-sizing: border-box; margin: 0; padding: 0; }
 html, body { height: 100%; overflow: hidden; }
@@ -38,13 +38,13 @@ body { font-family: system-ui, sans-serif; background: #ffffff; color: #1a1a1a; 
 </head>
 <body>
 <div id="scaleWrapper">
-  <div class="quiz-header"><h1>Vocabulary – Sport</h1></div>
+  <div class="quiz-header"><h1>Vocabulary – the present progressive</h1></div>
   <div class="score-bar">
     <span>Correct: <b id="cnt-c">0</b></span>
     <span>Wrong: <b id="cnt-w">0</b></span>
     <span>Left: <b id="cnt-l">0</b></span>
   </div>
-  <div class="tabs"><button class="tab-btn active" onclick="switchTab(0)">Words 1–10</button><button class="tab-btn" onclick="switchTab(1)">Words 11–20</button></div>
+  <div class="tabs"><button class="tab-btn active" onclick="switchTab(0)">Words 1–10</button><button class="tab-btn" onclick="switchTab(1)">Words 11–18</button></div>
   <div class="col-header"><span>Definition</span><span></span><span>Word</span></div>
   <div class="tab-panel"><div class="quiz-outer" id="rows-0"></div></div>
   <div class="tab-panel" style="display:none"><div class="quiz-outer" id="rows-1"></div></div>
@@ -53,26 +53,24 @@ body { font-family: system-ui, sans-serif; background: #ffffff; color: #1a1a1a; 
 <script>
 // [Word, Definition] – Definition fix links, leerer Slot Mitte, Wort als Chip rechts
 const PAIRS = [
-  ["treadmill", "a machine for running in one place (Laufband)"],
-  ["exercise bike", "a bike that stays in one place, used in a gym (Heimtrainer)"],
-  ["stretch", "an exercise where you pull your muscles to make them longer (Dehnübung)"],
-  ["weight", "a heavy thing you lift to get stronger (Gewicht, Hantel)"],
-  ["to split up", "to stop being together and go different ways (sich trennen)"],
-  ["equipment", "the things you need for a sport (Ausrüstung)"],
-  ["strength", "the power of your body (Kraft, Stärke)"],
-  ["challenge", "sth. (something) difficult that you want to do well (Herausforderung)"],
-  ["league", "a group of teams that play against each other (Liga)"],
-  ["season", "the part of the year when a sport is played (Saison)"],
-  ["skill", "sth. you can do well because you have learned it (Fähigkeit)"],
-  ["rarely", "not often (selten)"],
-  ["mostly", "in most cases (meistens)"],
-  ["instead", "in place of sth. else (stattdessen)"],
-  ["nice-looking", "good to look at (gutaussehend)"],
-  ["to pay attention to", "to look or listen carefully to sth. (achten auf)"],
-  ["message", "the main idea you want to tell people (Botschaft)"],
-  ["grid", "a table with boxes for your notes (Raster, Tabelle)"],
-  ["to train", "to practice a sport again and again (trainieren)"],
-  ["match", "a game between two teams or players (Spiel)"]
+  ["thoughtful", "appearing to be thinking seriously"],
+  ["lap", "the top part of your legs when you are sitting down"],
+  ["to rest sth. on", "to place or lean something gently against another thing"],
+  ["to belong", "to be someone's property"],
+  ["to notice", "to become aware of something"],
+  ["to seem", "to give the impression of being something"],
+  ["can't stand", "to dislike something very strongly"],
+  ["gradual", "happening slowly over a period of time"],
+  ["to access", "to reach, obtain or make use of something"],
+  ["development", "a change or growth that happens gradually over time"],
+  ["introductory", "used to introduce or lead into something"],
+  ["post", "a long piece of wood or metal fixed upright in the ground"],
+  ["state", "a condition or situation, rather than an action"],
+  ["sleeve", "the part of a piece of clothing that covers the arm"],
+  ["to prefer", "to like one thing more than another"],
+  ["sense", "one of the natural abilities (sight, hearing, smell, taste, touch) used to experience the world"],
+  ["possession", "the fact of having or owning something"],
+  ["to vary", "to change or to be different from one another"]
 ];
 const SPLIT = true;
 const GROUPS = SPLIT ? [PAIRS.slice(0, 10), PAIRS.slice(10)] : [PAIRS];

@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Vocabulary – Sport</title>
+<title>Vocabulary – the present tense</title>
 <style>
 * { box-sizing: border-box; margin: 0; padding: 0; }
 html, body { height: 100%; overflow: hidden; }
@@ -38,7 +38,7 @@ body { font-family: system-ui, sans-serif; background: #ffffff; color: #1a1a1a; 
 </head>
 <body>
 <div id="scaleWrapper">
-  <div class="quiz-header"><h1>Vocabulary – Sport</h1></div>
+  <div class="quiz-header"><h1>Vocabulary – the present tense</h1></div>
   <div class="score-bar">
     <span>Correct: <b id="cnt-c">0</b></span>
     <span>Wrong: <b id="cnt-w">0</b></span>
@@ -53,26 +53,26 @@ body { font-family: system-ui, sans-serif; background: #ffffff; color: #1a1a1a; 
 <script>
 // [Word, Definition] – Definition fix links, leerer Slot Mitte, Wort als Chip rechts
 const PAIRS = [
-  ["treadmill", "a machine for running in one place (Laufband)"],
-  ["exercise bike", "a bike that stays in one place, used in a gym (Heimtrainer)"],
-  ["stretch", "an exercise where you pull your muscles to make them longer (Dehnübung)"],
-  ["weight", "a heavy thing you lift to get stronger (Gewicht, Hantel)"],
-  ["to split up", "to stop being together and go different ways (sich trennen)"],
-  ["equipment", "the things you need for a sport (Ausrüstung)"],
-  ["strength", "the power of your body (Kraft, Stärke)"],
-  ["challenge", "sth. (something) difficult that you want to do well (Herausforderung)"],
-  ["league", "a group of teams that play against each other (Liga)"],
-  ["season", "the part of the year when a sport is played (Saison)"],
-  ["skill", "sth. you can do well because you have learned it (Fähigkeit)"],
-  ["rarely", "not often (selten)"],
-  ["mostly", "in most cases (meistens)"],
-  ["instead", "in place of sth. else (stattdessen)"],
-  ["nice-looking", "good to look at (gutaussehend)"],
-  ["to pay attention to", "to look or listen carefully to sth. (achten auf)"],
-  ["message", "the main idea you want to tell people (Botschaft)"],
-  ["grid", "a table with boxes for your notes (Raster, Tabelle)"],
-  ["to train", "to practice a sport again and again (trainieren)"],
-  ["match", "a game between two teams or players (Spiel)"]
+  ["novelist", "a person who writes novels"],
+  ["protagonist", "the main character in a story"],
+  ["surrounded by", "having something all around you on every side"],
+  ["to map out", "to plan a route or path in detail"],
+  ["to refuse to do something", "to say clearly that you will not do it"],
+  ["to loathe", "to hate someone or something very strongly"],
+  ["to volunteer", "to offer to do something without being forced"],
+  ["district", "one of the areas a country is divided into"],
+  ["paragraph", "one section of a text, usually several sentences long"],
+  ["maze", "a complicated network of paths that is easy to get lost in"],
+  ["to experience", "to go through or feel something yourself"],
+  ["setting", "the place and time where a story happens"],
+  ["to recognize", "to know someone or something because you have seen them before"],
+  ["habit", "something you do regularly, almost without thinking"],
+  ["tense", "a verb form that shows when something happens, e.g. past, present or future"],
+  ["to consider", "to think carefully about something"],
+  ["orally", "by speaking, not in writing"],
+  ["either...or", "used to show a choice between two things"],
+  ["to include", "to have something as part of a whole"],
+  ["briefly", "in a few words, not in detail"]
 ];
 const SPLIT = true;
 const GROUPS = SPLIT ? [PAIRS.slice(0, 10), PAIRS.slice(10)] : [PAIRS];

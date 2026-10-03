@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Vocabulary – Sport</title>
+<title>Vocabulary – the verbs be and have</title>
 <style>
 * { box-sizing: border-box; margin: 0; padding: 0; }
 html, body { height: 100%; overflow: hidden; }
@@ -38,14 +38,14 @@ body { font-family: system-ui, sans-serif; background: #ffffff; color: #1a1a1a; 
 </head>
 <body>
 <div id="scaleWrapper">
-  <div class="quiz-header"><h1>Vocabulary – Sport</h1></div>
+  <div class="quiz-header"><h1>Vocabulary – the verbs be and have</h1></div>
   <div class="score-bar">
     <span>Correct: <b id="cnt-c">0</b></span>
     <span>Wrong: <b id="cnt-w">0</b></span>
     <span>Left: <b id="cnt-l">0</b></span>
   </div>
-  <div class="tabs"><button class="tab-btn active" onclick="switchTab(0)">Words 1–10</button><button class="tab-btn" onclick="switchTab(1)">Words 11–20</button></div>
-  <div class="col-header"><span>Definition</span><span></span><span>Word</span></div>
+  <div class="tabs"><button class="tab-btn active" onclick="switchTab(0)">Words 1–10</button><button class="tab-btn" onclick="switchTab(1)">Words 11–12</button></div>
+  <div class="col-header"><span>English</span><span></span><span>German</span></div>
   <div class="tab-panel"><div class="quiz-outer" id="rows-0"></div></div>
   <div class="tab-panel" style="display:none"><div class="quiz-outer" id="rows-1"></div></div>
   <div class="controls"><button onclick="resetAll()">↺ Reset</button></div>
@@ -53,28 +53,21 @@ body { font-family: system-ui, sans-serif; background: #ffffff; color: #1a1a1a; 
 <script>
 // [Word, Definition] – Definition fix links, leerer Slot Mitte, Wort als Chip rechts
 const PAIRS = [
-  ["treadmill", "a machine for running in one place (Laufband)"],
-  ["exercise bike", "a bike that stays in one place, used in a gym (Heimtrainer)"],
-  ["stretch", "an exercise where you pull your muscles to make them longer (Dehnübung)"],
-  ["weight", "a heavy thing you lift to get stronger (Gewicht, Hantel)"],
-  ["to split up", "to stop being together and go different ways (sich trennen)"],
-  ["equipment", "the things you need for a sport (Ausrüstung)"],
-  ["strength", "the power of your body (Kraft, Stärke)"],
-  ["challenge", "sth. (something) difficult that you want to do well (Herausforderung)"],
-  ["league", "a group of teams that play against each other (Liga)"],
-  ["season", "the part of the year when a sport is played (Saison)"],
-  ["skill", "sth. you can do well because you have learned it (Fähigkeit)"],
-  ["rarely", "not often (selten)"],
-  ["mostly", "in most cases (meistens)"],
-  ["instead", "in place of sth. else (stattdessen)"],
-  ["nice-looking", "good to look at (gutaussehend)"],
-  ["to pay attention to", "to look or listen carefully to sth. (achten auf)"],
-  ["message", "the main idea you want to tell people (Botschaft)"],
-  ["grid", "a table with boxes for your notes (Raster, Tabelle)"],
-  ["to train", "to practice a sport again and again (trainieren)"],
-  ["match", "a game between two teams or players (Spiel)"]
+  ["to be out of work", "arbeitslos sein"],
+  ["opportunity", "Gelegenheit"],
+  ["prospects", "Aussichten"],
+  ["shocked", "schockiert"],
+  ["theme park", "Freizeitpark"],
+  ["barbecue", "Grillfest"],
+  ["reading project", "Leseprojekt"],
+  ["darker side", "dunklere Seite"],
+  ["all alone", "ganz allein"],
+  ["cover (of a book)", "Einband"],
+  ["integration project", "Integrationsprojekt"],
+  ["positive picture", "positives Bild"]
 ];
 const SPLIT = true;
+const LEFT = 0, CHIP = 1;
 const GROUPS = SPLIT ? [PAIRS.slice(0, 10), PAIRS.slice(10)] : [PAIRS];
 
 let correct = 0, wrong = 0, selectedChip = null, activeTab = 0;
@@ -101,10 +94,11 @@ function updateScore() {
 }
 
 function buildTab(pairs, containerId) {
-  const shuffledWords = shuffle(pairs.map(p => p[0]));
+  const shuffledWords = shuffle(pairs.map(p => p[CHIP]));
   const container = document.getElementById(containerId);
   container.innerHTML = '';
-  pairs.forEach(([word, def], i) => {
+  pairs.forEach((p, i) => {
+    const word = p[CHIP], def = p[LEFT];
     const row = document.createElement('div');
     row.className = 'pair-row';
 

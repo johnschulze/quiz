@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Vocabulary – Sport</title>
+<title>Vocabulary – the past tense</title>
 <style>
 * { box-sizing: border-box; margin: 0; padding: 0; }
 html, body { height: 100%; overflow: hidden; }
@@ -38,7 +38,7 @@ body { font-family: system-ui, sans-serif; background: #ffffff; color: #1a1a1a; 
 </head>
 <body>
 <div id="scaleWrapper">
-  <div class="quiz-header"><h1>Vocabulary – Sport</h1></div>
+  <div class="quiz-header"><h1>Vocabulary – the past tense</h1></div>
   <div class="score-bar">
     <span>Correct: <b id="cnt-c">0</b></span>
     <span>Wrong: <b id="cnt-w">0</b></span>
@@ -53,26 +53,26 @@ body { font-family: system-ui, sans-serif; background: #ffffff; color: #1a1a1a; 
 <script>
 // [Word, Definition] – Definition fix links, leerer Slot Mitte, Wort als Chip rechts
 const PAIRS = [
-  ["treadmill", "a machine for running in one place (Laufband)"],
-  ["exercise bike", "a bike that stays in one place, used in a gym (Heimtrainer)"],
-  ["stretch", "an exercise where you pull your muscles to make them longer (Dehnübung)"],
-  ["weight", "a heavy thing you lift to get stronger (Gewicht, Hantel)"],
-  ["to split up", "to stop being together and go different ways (sich trennen)"],
-  ["equipment", "the things you need for a sport (Ausrüstung)"],
-  ["strength", "the power of your body (Kraft, Stärke)"],
-  ["challenge", "sth. (something) difficult that you want to do well (Herausforderung)"],
-  ["league", "a group of teams that play against each other (Liga)"],
-  ["season", "the part of the year when a sport is played (Saison)"],
-  ["skill", "sth. you can do well because you have learned it (Fähigkeit)"],
-  ["rarely", "not often (selten)"],
-  ["mostly", "in most cases (meistens)"],
-  ["instead", "in place of sth. else (stattdessen)"],
-  ["nice-looking", "good to look at (gutaussehend)"],
-  ["to pay attention to", "to look or listen carefully to sth. (achten auf)"],
-  ["message", "the main idea you want to tell people (Botschaft)"],
-  ["grid", "a table with boxes for your notes (Raster, Tabelle)"],
-  ["to train", "to practice a sport again and again (trainieren)"],
-  ["match", "a game between two teams or players (Spiel)"]
+  ["to come up with sth. (something)", "to think of an idea (sich etwas ausdenken)"],
+  ["hero", "a person who does something brave (Held)"],
+  ["to hire", "to give sb. (somebody) a job (einstellen)"],
+  ["to set up", "to prepare sth. and put it in place (aufstellen)"],
+  ["to warm oneself", "to make your own body warmer (sich aufwärmen)"],
+  ["memorial", "sth. built to remember a person or an event (Denkmal)"],
+  ["to grow up", "to change from a child into an adult (aufwachsen)"],
+  ["to give birth to", "to have a baby (zur Welt bringen)"],
+  ["slavery", "a system in which people are owned by other people (Sklaverei)"],
+  ["to speak out against sth.", "to say in public that you are against sth. (sich öffentlich gegen etwas aussprechen)"],
+  ["re-election", "winning an election again (Wiederwahl)"],
+  ["Civil War", "a war between groups in the same country (Bürgerkrieg)"],
+  ["to shoot sb.", "to hurt or kill sb. with a gun (jemanden erschießen)"],
+  ["to lean over", "to bend your body towards sb. or sth. (sich vorbeugen)"],
+  ["to disappear", "to go away so that nobody can see you (verschwinden)"],
+  ["to kneel", "to go down on your knees (knien)"],
+  ["old-fashioned", "not modern any more (altmodisch)"],
+  ["hobby horse", "a toy horse on a stick that children ride (Steckenpferd)"],
+  ["to fire a shot", "to shoot a gun once (einen Schuss abgeben)"],
+  ["to play a chord", "to play several notes together on an instrument (einen Akkord spielen)"]
 ];
 const SPLIT = true;
 const GROUPS = SPLIT ? [PAIRS.slice(0, 10), PAIRS.slice(10)] : [PAIRS];
