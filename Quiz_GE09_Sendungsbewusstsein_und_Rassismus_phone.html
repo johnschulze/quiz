@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Fachbegriffe – Sendungsbewusstsein und Rassismus</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { height: 100%; overflow: hidden; }
+body { font-family: system-ui, sans-serif; background: #ffffff; color: #1a1a1a; display: flex; justify-content: center; align-items: flex-start; }
+#scaleWrapper { padding: 0.3rem 0.5rem 0.4rem; transform-origin: top center; opacity: 0; }
+.quiz-header { text-align: center; margin-bottom: 0.2rem; }
+.quiz-header h1 { font-size: 1.2rem; font-weight: 600; }
+.score-bar { display: flex; justify-content: center; gap: 1.5rem; margin-bottom: 0.2rem; font-size: 0.9rem; color: #555; }
+.score-bar b { color: #1a1a1a; }
+.tabs { display: flex; justify-content: center; gap: 0.5rem; margin-bottom: 0.25rem; }
+.tab-btn { font-size: 0.9rem; padding: 0.2rem 1rem; border-radius: 8px; border: 1px solid #ccc; background: #fff; color: #555; cursor: pointer; }
+.tab-btn.active { background: #1e3a5f; border-color: #1e3a5f; color: #fff; }
+.col-header { display: flex; gap: 0.25rem; margin: 0 auto 0.15rem; width: fit-content; }
+.col-header span { font-size: 0.75rem; color: #888; text-align: center; flex-shrink: 0; }
+.quiz-outer { margin: 0 auto 0.2rem; width: fit-content; }
+.pair-row { display: flex; gap: 0.25rem; margin-bottom: 0.15rem; align-items: stretch; justify-content: flex-start; }
+.def-card { flex-shrink: 0; white-space: nowrap; background: #f3f4f6; border: 1px solid #d1d5db; border-radius: 6px; padding: 0.12rem 0.6rem; font-size: 1rem; display: flex; align-items: center; min-height: 0; line-height: 1.2; }
+.drop-zone { flex-shrink: 0; white-space: nowrap; border: 2px dashed #9ca3af; border-radius: 6px; padding: 0.12rem 0.3rem; font-size: 1rem; min-height: 0; display: flex; align-items: center; justify-content: center; text-align: center; background: #fff; cursor: pointer; line-height: 1.2; transition: border-color 0.15s, background 0.15s; }
+.drop-zone.ready         { border-color: #1a56db; background: #e8f0fe; }
+.drop-zone.matched-ok    { border: 2px solid #1e3a5f; background: #eaf0f7; color: #1e3a5f; font-weight: 400; cursor: default; pointer-events: none; }
+.drop-zone.matched-wrong { border: 2px solid #dc2626; background: #fef2f2; animation: shake 0.35s ease; }
+@keyframes shake { 0%,100% { transform: translateX(0); } 25% { transform: translateX(-5px); } 75% { transform: translateX(5px); } }
+.chip-cell { display: flex; align-items: stretch; flex-shrink: 0; }
+.chip { flex-shrink: 0; white-space: nowrap; background: #1e3a5f; color: #fff; border-radius: 6px; padding: 0.12rem 0.6rem; font-size: 1rem; cursor: pointer; user-select: none; min-height: 0; display: flex; align-items: center; line-height: 1.2; transition: background 0.12s, transform 0.1s, box-shadow 0.12s; }
+.chip:hover    { background: #162d4a; }
+.chip.selected { background: #1a56db; transform: scale(1.03); box-shadow: 0 4px 14px rgba(26,86,219,0.35); }
+.chip.placed   { visibility: hidden; pointer-events: none; }
+.controls { display: flex; justify-content: center; margin-top: 0.3rem; }
+.controls button { font-size: 0.9rem; padding: 0.25rem 1rem; border-radius: 8px; border: 1px solid #ccc; background: #fff; color: #555; cursor: pointer; }
+.controls button:hover { border-color: #1a56db; color: #1a56db; }
+</style>
+</head>
+<body>
+<div id="scaleWrapper">
+  <div class="quiz-header"><h1>Fachbegriffe – Sendungsbewusstsein und Rassismus</h1></div>
+  <div class="score-bar">
+    <span>Correct: <b id="cnt-c">0</b></span>
+    <span>Wrong: <b id="cnt-w">0</b></span>
+    <span>Left: <b id="cnt-l">0</b></span>
+  </div>
+  <div class="tabs"><button class="tab-btn active" onclick="switchTab(0)">Begriffe 1–10</button><button class="tab-btn" onclick="switchTab(1)">Begriffe 11–18</button></div>
+  <div class="col-header"><span>Definition</span><span></span><span>Fachbegriff</span></div>
+  <div class="tab-panel"><div class="quiz-outer" id="rows-0"></div></div>
+  <div class="tab-panel" style="display:none"><div class="quiz-outer" id="rows-1"></div></div>
+  <div class="controls"><button onclick="resetAll()">↺ Reset</button></div>
+</div>
+<script>
+// [Word, Definition] – Definition fix links, leerer Slot Mitte, Wort als Chip rechts
+const PAIRS = [
+  ["Glaube, dass man die eigene Kultur zu anderen Völkern bringen muss", "Sendungsbewusstsein"],
+  ["Menschen werden wegen ihrer Hautfarbe oder Herkunft für weniger wert gehalten", "Rassismus"],
+  ["Menschen aus dem Land, das eine Kolonie beherrscht", "Kolonialherren"],
+  ["Menschen, die in einer Kolonie leben und beherrscht werden", "Kolonialvölker"],
+  ["Menschen, die ihr Land immer größer und mächtiger machen wollen", "Imperialisten"],
+  ["Falsche Lehre, dass manche Menschen mehr wert sind als andere", "Rasselehre"],
+  ["Andere Menschen nur für den eigenen Vorteil nutzen, ohne Rücksicht", "Ausbeutung"],
+  ["Altes, abwertendes Wort für Menschen, die schon lange in einem Land leben", "Eingeborene"],
+  ["Abwertendes Wort für Menschen, die nicht christlich sind", "Heiden"],
+  ["Ein Glaube, den Christen für falsch und unwissenschaftlich hielten", "Aberglaube"],
+  ["Ein fremdes Gebiet zur eigenen Kolonie machen", "Kolonialerwerb"],
+  ["Hoher Kulturzustand, den sich die Kolonialmächte selbst zuschrieben", "Zivilisation"],
+  ["Gesund werden, nachdem man krank war", "genesen"],
+  ["Fleiß und der Wille, viel zu leisten", "Tüchtigkeit"],
+  ["Gewohnheiten und Traditionen eines Volkes", "Sitten und Bräuche"],
+  ["Feste Handlung, die man immer gleich nach religiösen Regeln macht", "Ritual"],
+  ["Vorstellung, dass Gott die Welt genau so geordnet hat, wie sie ist", "göttliche Weltordnung"],
+  ["Jemanden schlagen, um ihn angeblich zu erziehen", "Züchtigung"]
+];
+const SPLIT = true;
+const LEFT = 0, CHIP = 1;
+const GROUPS = SPLIT ? [PAIRS.slice(0, 10), PAIRS.slice(10)] : [PAIRS];
+
+let correct = 0, wrong = 0, selectedChip = null, activeTab = 0;
+
+function shuffle(arr) {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+function deselectAll() {
+  document.querySelectorAll('.chip.selected').forEach(c => c.classList.remove('selected'));
+  document.querySelectorAll('.drop-zone.ready').forEach(z => z.classList.remove('ready'));
+  selectedChip = null;
+}
+
+function updateScore() {
+  document.getElementById('cnt-c').textContent = correct;
+  document.getElementById('cnt-w').textContent = wrong;
+  document.getElementById('cnt-l').textContent = document.querySelectorAll('.drop-zone:not(.matched-ok)').length;
+}
+
+function buildTab(pairs, containerId) {
+  const shuffledWords = shuffle(pairs.map(p => p[CHIP]));
+  const container = document.getElementById(containerId);
+  container.innerHTML = '';
+  pairs.forEach((p, i) => {
+    const word = p[CHIP], def = p[LEFT];
+    const row = document.createElement('div');
+    row.className = 'pair-row';
+
+    const defCard = document.createElement('div');
+    defCard.className = 'def-card';
+    defCard.textContent = def;
+
+    const drop = document.createElement('div');
+    drop.className = 'drop-zone';
+    drop.dataset.answer = word;
+    drop.addEventListener('click', () => {
+      if (!selectedChip) return;
+      if (selectedChip.dataset.value === drop.dataset.answer) {
+        drop.textContent = selectedChip.dataset.value;
+        drop.classList.add('matched-ok');
+        drop.classList.remove('ready');
+        selectedChip.classList.add('placed');
+        correct++;
+        updateScore();
+        deselectAll();
+      } else {
+        wrong++;
+        drop.classList.add('matched-wrong');
+        setTimeout(() => drop.classList.remove('matched-wrong'), 400);
+        updateScore();
+      }
+    });
+
+    const chipCell = document.createElement('div');
+    chipCell.className = 'chip-cell';
+    const chip = document.createElement('div');
+    chip.className = 'chip';
+    chip.textContent = shuffledWords[i];
+    chip.dataset.value = shuffledWords[i];
+    chip.addEventListener('click', () => {
+      if (chip.classList.contains('placed')) return;
+      if (chip.classList.contains('selected')) { deselectAll(); return; }
+      deselectAll();
+      chip.classList.add('selected');
+      chip.closest('.quiz-outer').querySelectorAll('.drop-zone:not(.matched-ok)').forEach(z => z.classList.add('ready'));
+      selectedChip = chip;
+    });
+    chipCell.appendChild(chip);
+
+    row.appendChild(defCard);
+    row.appendChild(drop);
+    row.appendChild(chipCell);
+    container.appendChild(row);
+  });
+}
+
+// Spaltenbreiten über alle Tabs gemeinsam messen (versteckte Tabs liefern sonst Breite 0)
+function sizeColumns() {
+  const wr = document.getElementById('scaleWrapper');
+  const savedTransform = wr.style.transform;
+  wr.style.transform = 'none';
+  const panels = [...document.querySelectorAll('.tab-panel')];
+  const prev = panels.map(p => p.style.display);
+  panels.forEach(p => p.style.display = 'block');
+  const defs = [...document.querySelectorAll('.def-card')];
+  const chips = [...document.querySelectorAll('.chip')];
+  const drops = [...document.querySelectorAll('.drop-zone')];
+  [...defs, ...chips, ...drops].forEach(e => e.style.width = '');
+  const maxDefW = Math.ceil(Math.max(...defs.map(d => d.getBoundingClientRect().width)));
+  const maxChipW = Math.ceil(Math.max(...chips.map(c => c.getBoundingClientRect().width)));
+  defs.forEach(d => d.style.width = maxDefW + 'px');
+  chips.forEach(c => c.style.width = maxChipW + 'px');
+  drops.forEach(d => d.style.width = maxChipW + 'px');
+  const hs = document.querySelectorAll('.col-header span');
+  hs[0].style.width = maxDefW + 'px';
+  hs[1].style.width = maxChipW + 'px';
+  hs[2].style.width = maxChipW + 'px';
+  panels.forEach((p, i) => p.style.display = prev[i]);
+  wr.style.transform = savedTransform;
+}
+
+function fitToScreen() {
+  const wrapper = document.getElementById('scaleWrapper');
+  wrapper.style.transform = 'none';
+  requestAnimationFrame(() => {
+    const cw = wrapper.scrollWidth, ch = wrapper.scrollHeight;
+    const scale = Math.min(3, window.innerWidth / cw, window.innerHeight / ch);
+    wrapper.style.transform = `scale(${scale})`;
+    wrapper.style.opacity = '1';
+  });
+}
+
+function switchTab(n) {
+  activeTab = n;
+  deselectAll();
+  document.querySelectorAll('.tab-panel').forEach((p, i) => p.style.display = i === n ? 'block' : 'none');
+  document.querySelectorAll('.tab-btn').forEach((b, i) => b.classList.toggle('active', i === n));
+  fitToScreen();
+}
+
+function buildAll() {
+  GROUPS.forEach((g, i) => buildTab(g, 'rows-' + i));
+  requestAnimationFrame(() => { sizeColumns(); updateScore(); fitToScreen(); });
+}
+
+function resetAll() {
+  correct = 0; wrong = 0; selectedChip = null;
+  buildAll();
+  if (SPLIT) switchTab(0);
+}
+
+buildAll();
+if (SPLIT) switchTab(0);
+window.addEventListener('load', () => setTimeout(() => { sizeColumns(); fitToScreen(); }, 50));
+window.addEventListener('resize', () => setTimeout(fitToScreen, 50));
+document.addEventListener('click', e => {
+  if (!e.target.closest('.chip') && !e.target.closest('.drop-zone')) deselectAll();
+});
+</script>
+</body>
+</html>
