@@ -31,6 +31,12 @@ body { font-family: system-ui, sans-serif; background: #ffffff; color: #1a1a1a; 
 .controls { display: flex; justify-content: center; margin-top: 0.2rem; }
 .controls button { font-size: 0.9rem; padding: 0.25rem 1rem; border-radius: 8px; border: 1px solid #ccc; background: #fff; color: #555; cursor: pointer; }
 .controls button:hover { border-color: #1a56db; color: #1a56db; }
+
+.tabs { display: flex; justify-content: center; gap: 0.4rem; margin-bottom: 0.25rem; }
+.tab-btn { font-size: 0.9rem; padding: 0.2rem 1rem; border-radius: 8px; border: 1px solid #ccc; background: #fff; color: #555; cursor: pointer; }
+.tab-btn.active { background: #1e3a5f; border-color: #1e3a5f; color: #fff; }
+.tab-panel { display: none; }
+.tab-panel.active { display: block; }
 </style>
 </head>
 <body>
@@ -41,96 +47,111 @@ body { font-family: system-ui, sans-serif; background: #ffffff; color: #1a1a1a; 
     <span>Wrong: <b id="cnt-w">0</b></span>
     <span>Left: <b id="cnt-l">0</b></span>
   </div>
-  <div class="col-header"><span>Definition</span><span></span><span>Word</span></div>
-  <div class="quiz-outer" id="rows-0"></div>
+  <div class="tabs">
+    <button class="tab-btn active" onclick="switchTab(0)">Words 1–10</button>
+    <button class="tab-btn" onclick="switchTab(1)">Words 11–20</button>
+  </div>
+  <div class="tab-panel active" id="panel-0">
+    <div class="col-header"><span>Definition</span><span></span><span>Word</span></div>
+    <div class="quiz-outer" id="rows-0"></div>
+  </div>
+  <div class="tab-panel" id="panel-1">
+    <div class="col-header"><span>Definition</span><span></span><span>Word</span></div>
+    <div class="quiz-outer" id="rows-1"></div>
+  </div>
   <div class="controls"><button onclick="resetAll()">↺ Reset</button></div>
 </div>
 <script>
 // [Word, Definition] — definition fixed left, word as chip on the right
-const PAIRS = [
+const TABS = [
  [
-  "to outweigh",
-  "to be greater or more important than sth. (something) else (überwiegen)"
+  [
+   "to outweigh",
+   "to be greater or more important than sth. (something) else (überwiegen)"
+  ],
+  [
+   "drawback",
+   "a disadvantage or problem (Nachteil)"
+  ],
+  [
+   "to blur",
+   "to become unclear, so that you cannot see the difference between two things (verschwimmen)"
+  ],
+  [
+   "sceptical",
+   "not sure that sth. is true or a good idea (skeptisch)"
+  ],
+  [
+   "to commute",
+   "to travel regularly between home and work (pendeln)"
+  ],
+  [
+   "morale",
+   "the level of confidence and good feeling among people at work (Stimmung, Arbeitsmoral)"
+  ],
+  [
+   "perk",
+   "an extra benefit that you get from your job (Zusatzleistung)"
+  ],
+  [
+   "self-employed",
+   "working for yourself, not for a company (selbstständig)"
+  ],
+  [
+   "freelancer",
+   "sb. (somebody) who works for different companies, but is not employed by any of them (Freiberufler)"
+  ],
+  [
+   "absence",
+   "the fact of not being at work or school (Abwesenheit)"
+  ]
  ],
  [
-  "drawback",
-  "a disadvantage or problem (Nachteil)"
- ],
- [
-  "to blur",
-  "to become unclear, so that you cannot see the difference between two things (verschwimmen)"
- ],
- [
-  "sceptical",
-  "not sure that sth. is true or a good idea (skeptisch)"
- ],
- [
-  "to commute",
-  "to travel regularly between home and work (pendeln)"
- ],
- [
-  "morale",
-  "the level of confidence and good feeling among people at work (Stimmung, Arbeitsmoral)"
- ],
- [
-  "perk",
-  "an extra benefit that you get from your job (Zusatzleistung)"
- ],
- [
-  "self-employed",
-  "working for yourself, not for a company (selbstständig)"
- ],
- [
-  "freelancer",
-  "sb. (somebody) who works for different companies, but is not employed by any of them (Freiberufler)"
- ],
- [
-  "absence",
-  "the fact of not being at work or school (Abwesenheit)"
- ],
- [
-  "to quit",
-  "to leave your job (kündigen)"
- ],
- [
-  "productivity",
-  "how much work a person or company gets done (Produktivität)"
- ],
- [
-  "to hire",
-  "to give sb. a job (einstellen)"
- ],
- [
-  "distraction",
-  "sth. that stops you from concentrating (Ablenkung)"
- ],
- [
-  "open-plan",
-  "with few walls, so that people work in one big room (Großraum-)"
- ],
- [
-  "to adapt",
-  "to change your behaviour to fit a new situation (sich anpassen)"
- ],
- [
-  "hybrid",
-  "a mix of working at home and in the office (hybrid)"
- ],
- [
-  "remote",
-  "done from a different place, not from the office (aus der Ferne)"
- ],
- [
-  "core day",
-  "a day when all employees must be in the office (Kerntag)"
- ],
- [
-  "to suggest",
-  "to show that sth. is probably true (nahelegen, darauf hindeuten)"
+  [
+   "to quit",
+   "to leave your job (kündigen)"
+  ],
+  [
+   "productivity",
+   "how much work a person or company gets done (Produktivität)"
+  ],
+  [
+   "to hire",
+   "to give sb. a job (einstellen)"
+  ],
+  [
+   "distraction",
+   "sth. that stops you from concentrating (Ablenkung)"
+  ],
+  [
+   "open-plan",
+   "with few walls, so that people work in one big room (Großraum-)"
+  ],
+  [
+   "to adapt",
+   "to change your behaviour to fit a new situation (sich anpassen)"
+  ],
+  [
+   "hybrid",
+   "a mix of working at home and in the office (hybrid)"
+  ],
+  [
+   "remote",
+   "done from a different place, not from the office (aus der Ferne)"
+  ],
+  [
+   "core day",
+   "a day when all employees must be in the office (Kerntag)"
+  ],
+  [
+   "to suggest",
+   "to show that sth. is probably true (nahelegen, darauf hindeuten)"
+  ]
  ]
 ];
 
-let correct = 0, wrong = 0, selectedChip = null;
+let correct = 0, wrong = 0, selectedChip = null, activeTab = 0;
+const TOTAL = TABS.reduce((n, t) => n + t.length, 0);
 
 function shuffle(arr) {
   const a = [...arr];
@@ -148,7 +169,7 @@ function deselectAll() {
 function updateScore() {
   document.getElementById('cnt-c').textContent = correct;
   document.getElementById('cnt-w').textContent = wrong;
-  document.getElementById('cnt-l').textContent = document.querySelectorAll('.drop-zone:not(.matched-ok)').length;
+  document.getElementById('cnt-l').textContent = TOTAL - correct;
 }
 function fitToScreen() {
   const wrapper = document.getElementById('scaleWrapper');
@@ -159,6 +180,31 @@ function fitToScreen() {
     wrapper.style.transform = `scale(${scale})`;
     wrapper.style.opacity = '1';
   });
+}
+function sizeTab(idx) {
+  const panel = document.getElementById('panel-' + idx);
+  const defs = [...panel.querySelectorAll('.def-card')];
+  const chips = [...panel.querySelectorAll('.chip')];
+  const drops = [...panel.querySelectorAll('.drop-zone')];
+  defs.forEach(d => d.style.width = ''); chips.forEach(c => c.style.width = ''); drops.forEach(d => d.style.width = '');
+  const maxDefW = Math.ceil(Math.max(...defs.map(d => d.getBoundingClientRect().width)));
+  const maxChipW = Math.ceil(Math.max(...chips.map(c => c.getBoundingClientRect().width)));
+  defs.forEach(d => d.style.width = maxDefW + 'px');
+  chips.forEach(c => c.style.width = maxChipW + 'px');
+  drops.forEach(d => d.style.width = maxChipW + 'px');
+  const hs = panel.querySelectorAll('.col-header span');
+  if (hs[0]) hs[0].style.width = maxDefW + 'px';
+  if (hs[1]) hs[1].style.width = maxChipW + 'px';
+  if (hs[2]) hs[2].style.width = maxChipW + 'px';
+}
+function switchTab(idx) {
+  deselectAll();
+  activeTab = idx;
+  document.querySelectorAll('.tab-btn').forEach((b, i) => b.classList.toggle('active', i === idx));
+  document.querySelectorAll('.tab-panel').forEach((p, i) => p.classList.toggle('active', i === idx));
+  // the wrapper must be unscaled while measuring
+  document.getElementById('scaleWrapper').style.transform = 'none';
+  requestAnimationFrame(() => { sizeTab(idx); fitToScreen(); });
 }
 function buildTab(pairs, containerId) {
   const shuffledWords = shuffle(pairs.map(p => p[0]));
@@ -199,36 +245,21 @@ function buildTab(pairs, containerId) {
       if (chip.classList.contains('selected')) { deselectAll(); return; }
       deselectAll();
       chip.classList.add('selected');
-      chip.closest('.quiz-outer').querySelectorAll('.drop-zone:not(.matched-ok)').forEach(z => z.classList.add('ready'));
+      chip.closest('.tab-panel').querySelectorAll('.drop-zone:not(.matched-ok)').forEach(z => z.classList.add('ready'));
       selectedChip = chip;
     });
     chipCell.appendChild(chip);
     row.appendChild(defCard); row.appendChild(drop); row.appendChild(chipCell);
     container.appendChild(row);
   });
-  requestAnimationFrame(() => {
-    const defs = [...container.querySelectorAll('.def-card')];
-    const chips = [...container.querySelectorAll('.chip')];
-    const drops = [...container.querySelectorAll('.drop-zone')];
-    const maxDefW = Math.ceil(Math.max(...defs.map(d => d.getBoundingClientRect().width)));
-    const maxChipW = Math.ceil(Math.max(...chips.map(c => c.getBoundingClientRect().width)));
-    defs.forEach(d => d.style.width = maxDefW + 'px');
-    chips.forEach(c => c.style.width = maxChipW + 'px');
-    drops.forEach(d => d.style.width = maxChipW + 'px');
-    const hs = document.querySelectorAll('.col-header span');
-    if (hs[0]) hs[0].style.width = maxDefW + 'px';
-    if (hs[1]) hs[1].style.width = maxChipW + 'px';
-    if (hs[2]) hs[2].style.width = maxChipW + 'px';
-    fitToScreen();
-  });
 }
 function resetAll() {
   correct = 0; wrong = 0; selectedChip = null;
-  buildTab(PAIRS, 'rows-0');
+  TABS.forEach((t, i) => buildTab(t, 'rows-' + i));
   updateScore();
+  switchTab(activeTab);
 }
-buildTab(PAIRS, 'rows-0');
-updateScore();
+resetAll();
 window.addEventListener('resize', () => setTimeout(fitToScreen, 50));
 document.addEventListener('click', e => {
   if (!e.target.closest('.chip') && !e.target.closest('.drop-zone')) deselectAll();
