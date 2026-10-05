@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Vocabulary – Musical talent at Ann Arbor High School</title>
+<title>Vocabulary – musical talent at Ann Arbor High School</title>
 <style>
 * { box-sizing: border-box; margin: 0; padding: 0; }
 html, body { height: 100%; overflow: hidden; }
@@ -38,14 +38,14 @@ body { font-family: system-ui, sans-serif; background: #ffffff; color: #1a1a1a; 
 </head>
 <body>
 <div id="scaleWrapper">
-  <div class="quiz-header"><h1>Vocabulary – Musical talent at Ann Arbor High School</h1></div>
+  <div class="quiz-header"><h1>Vocabulary – musical talent at Ann Arbor High School</h1></div>
   <div class="score-bar">
     <span>Correct: <b id="cnt-c">0</b></span>
     <span>Wrong: <b id="cnt-w">0</b></span>
     <span>Left: <b id="cnt-l">0</b></span>
   </div>
   <div class="tabs"><button class="tab-btn active" onclick="switchTab(0)">Words 1–10</button><button class="tab-btn" onclick="switchTab(1)">Words 11–20</button></div>
-  <div class="col-header"><span>English</span><span></span><span>German</span></div>
+  <div class="col-header"><span>Definition</span><span></span><span>Word</span></div>
   <div class="tab-panel"><div class="quiz-outer" id="rows-0"></div></div>
   <div class="tab-panel" style="display:none"><div class="quiz-outer" id="rows-1"></div></div>
   <div class="controls"><button onclick="resetAll()">↺ Reset</button></div>
@@ -53,29 +53,29 @@ body { font-family: system-ui, sans-serif; background: #ffffff; color: #1a1a1a; 
 <script>
 // [Word, Definition] – Definition fix links, leerer Slot Mitte, Wort als Chip rechts
 const PAIRS = [
-  ["to lend", "leihen, verleihen"],
-  ["to belong to sb. (somebody)", "jemandem gehören"],
-  ["to perform", "auftreten"],
-  ["to save up", "sparen"],
-  ["argument", "Streit"],
-  ["favourite", "Lieblings-"],
-  ["high school", "weiterführende Schule (USA)"],
-  ["to compete", "antreten"],
-  ["season", "Saison, Spielzeit"],
-  ["a couple of", "ein paar"],
-  ["twice", "zweimal"],
-  ["to be into sth. (something)", "auf etwas stehen"],
-  ["to agree with sb. (somebody)", "jemandem zustimmen"],
-  ["marching band", "Blasorchester (marschierend)"],
-  ["competition", "Wettkampf, Wettbewerb"],
-  ["crowd", "Menschenmenge, Publikum"],
-  ["tune", "Lied, Stück"],
-  ["to be on bass", "Bass spielen"],
-  ["gig", "Auftritt, Konzert"],
-  ["equipment", "Geräte, Ausstattung"]
+  ["to lend", "to give sth. (something) to sb. (somebody) for a short time (leihen, verleihen)"],
+  ["to belong to sb.", "to be owned by sb. (jemandem gehören)"],
+  ["to perform", "to sing, play or act in front of people (auftreten)"],
+  ["to save up", "to keep money so that you can buy sth. later (sparen)"],
+  ["argument", "an angry talk between people who do not agree (Streit)"],
+  ["favourite", "liked best of all (Lieblings-)"],
+  ["high school", "a school for teenagers in the USA (weiterführende Schule, USA)"],
+  ["to compete", "to try to win against other people (antreten)"],
+  ["season", "the part of the year when a sport or an activity takes place (Saison, Spielzeit)"],
+  ["a couple of", "more than one, but not many (ein paar)"],
+  ["twice", "two times (zweimal)"],
+  ["to be into sth.", "to like sth. very much (auf etwas stehen)"],
+  ["to agree with sb.", "to have the same opinion as sb. (jemandem zustimmen)"],
+  ["marching band", "a band that plays music while it walks (Blasorchester, marschierend)"],
+  ["competition", "an event where people try to win (Wettkampf, Wettbewerb)"],
+  ["crowd", "a large group of people who watch sth. (Menschenmenge, Publikum)"],
+  ["tune", "a short piece of music that you can sing or hum (Lied, Stück)"],
+  ["to be on bass", "to play the bass guitar (Bass spielen)"],
+  ["gig", "a live concert of a band or a musician (Auftritt, Konzert)"],
+  ["equipment", "the things you need to do an activity (Geräte, Ausstattung)"]
 ];
 const SPLIT = true;
-const LEFT = 0, CHIP = 1;
+const LEFT = 1, CHIP = 0;
 const GROUPS = SPLIT ? [PAIRS.slice(0, 10), PAIRS.slice(10)] : [PAIRS];
 
 let correct = 0, wrong = 0, selectedChip = null, activeTab = 0;

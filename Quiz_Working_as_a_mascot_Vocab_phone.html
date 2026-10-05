@@ -45,7 +45,7 @@ body { font-family: system-ui, sans-serif; background: #ffffff; color: #1a1a1a; 
     <span>Left: <b id="cnt-l">0</b></span>
   </div>
   <div class="tabs"><button class="tab-btn active" onclick="switchTab(0)">Words 1–10</button><button class="tab-btn" onclick="switchTab(1)">Words 11–20</button></div>
-  <div class="col-header"><span>English</span><span></span><span>German</span></div>
+  <div class="col-header"><span>Definition</span><span></span><span>Word</span></div>
   <div class="tab-panel"><div class="quiz-outer" id="rows-0"></div></div>
   <div class="tab-panel" style="display:none"><div class="quiz-outer" id="rows-1"></div></div>
   <div class="controls"><button onclick="resetAll()">↺ Reset</button></div>
@@ -53,29 +53,29 @@ body { font-family: system-ui, sans-serif; background: #ffffff; color: #1a1a1a; 
 <script>
 // [Word, Definition] – Definition fix links, leerer Slot Mitte, Wort als Chip rechts
 const PAIRS = [
-  ["mascot", "Maskottchen"],
-  ["theme park", "Freizeitpark"],
-  ["athletic ability", "körperliche Fitness"],
-  ["acting skills", "schauspielerische Fähigkeiten"],
-  ["to entertain", "unterhalten"],
-  ["dance routine", "Tanzchoreografie"],
-  ["stunt", "gewagtes Kunststück"],
-  ["to assist in", "unterstützen bei"],
-  ["costume", "Kostüm"],
-  ["to maintain", "pflegen, instand halten"],
-  ["in good condition", "in gutem Zustand"],
-  ["to be in motion", "in Bewegung sein"],
-  ["crowd", "Menge, Publikum"],
-  ["guidelines", "Richtlinien"],
-  ["to damage", "schädigen"],
-  ["to avoid", "vermeiden"],
-  ["risk", "Risiko"],
-  ["to drop (someone)", "(jemanden) fallen lassen"],
-  ["to overdo it", "es übertreiben"],
-  ["to take a break", "eine Pause machen"]
+  ["mascot", "a person or animal figure that represents a team or company (Maskottchen)"],
+  ["theme park", "a big park with rides and shows for fun (Freizeitpark)"],
+  ["athletic ability", "how strong, fast and fit your body is (körperliche Fitness)"],
+  ["acting skills", "the things you can do to play a role well (schauspielerische Fähigkeiten)"],
+  ["to entertain", "to make people enjoy themselves (unterhalten)"],
+  ["dance routine", "a set of dance moves that you practise (Tanzchoreografie)"],
+  ["stunt", "a difficult and dangerous action that needs skill (gewagtes Kunststück)"],
+  ["to assist in", "to help sb. (somebody) with a task or a job (unterstützen bei)"],
+  ["costume", "special clothes that you wear to look like sb. or sth. (something) else (Kostüm)"],
+  ["to maintain", "to take care of sth. so that it stays in order (pflegen, instand halten)"],
+  ["in good condition", "not broken or damaged (in gutem Zustand)"],
+  ["to be in motion", "to be moving (in Bewegung sein)"],
+  ["crowd", "a large group of people in one place (Menge, Publikum)"],
+  ["guidelines", "rules or advice that tell you how to do sth. (Richtlinien)"],
+  ["to damage", "to harm sth. so that it does not work or look good (schädigen)"],
+  ["to avoid", "to stay away from sth. or not let it happen (vermeiden)"],
+  ["risk", "the chance that sth. bad can happen (Risiko)"],
+  ["to drop sb.", "to let sb. fall by mistake (jemanden fallen lassen)"],
+  ["to overdo it", "to do more than is good for you (es übertreiben)"],
+  ["to take a break", "to stop for a short time to rest (eine Pause machen)"]
 ];
 const SPLIT = true;
-const LEFT = 0, CHIP = 1;
+const LEFT = 1, CHIP = 0;
 const GROUPS = SPLIT ? [PAIRS.slice(0, 10), PAIRS.slice(10)] : [PAIRS];
 
 let correct = 0, wrong = 0, selectedChip = null, activeTab = 0;

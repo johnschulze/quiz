@@ -53,28 +53,29 @@ body { font-family: system-ui, sans-serif; background: #ffffff; color: #1a1a1a; 
 <script>
 // [Word, Definition] – Definition fix links, leerer Slot Mitte, Wort als Chip rechts
 const PAIRS = [
-  ["novelist", "a person who writes novels"],
-  ["protagonist", "the main character in a story"],
-  ["surrounded by", "having something all around you on every side"],
-  ["to map out", "to plan a route or path in detail"],
-  ["to refuse to do something", "to say clearly that you will not do it"],
-  ["to loathe", "to hate someone or something very strongly"],
-  ["to volunteer", "to offer to do something without being forced"],
-  ["district", "one of the areas a country is divided into"],
-  ["paragraph", "one section of a text, usually several sentences long"],
-  ["maze", "a complicated network of paths that is easy to get lost in"],
-  ["to experience", "to go through or feel something yourself"],
-  ["setting", "the place and time where a story happens"],
-  ["to recognize", "to know someone or something because you have seen them before"],
-  ["habit", "something you do regularly, almost without thinking"],
-  ["tense", "a verb form that shows when something happens, e.g. past, present or future"],
-  ["to consider", "to think carefully about something"],
-  ["orally", "by speaking, not in writing"],
-  ["either...or", "used to show a choice between two things"],
-  ["to include", "to have something as part of a whole"],
-  ["briefly", "in a few words, not in detail"]
+  ["novelist", "a person who writes novels (Romanautor)"],
+  ["protagonist", "the main character in a story (Hauptfigur)"],
+  ["surrounded by", "having sth. (something) all around you on every side (umgeben von)"],
+  ["to map out", "to plan a route or path in detail (genau planen, einzeichnen)"],
+  ["to refuse to do sth.", "to say clearly that you will not do it (sich weigern, etwas zu tun)"],
+  ["to loathe", "to hate sb. (somebody) or sth. very strongly (verabscheuen)"],
+  ["to volunteer", "to offer to do sth. without being forced (sich freiwillig melden)"],
+  ["district", "one of the areas a country is divided into (Bezirk)"],
+  ["paragraph", "one section of a text, usually several sentences long (Absatz)"],
+  ["maze", "a complicated network of paths that is easy to get lost in (Labyrinth)"],
+  ["to experience", "to go through or feel sth. yourself (erleben)"],
+  ["setting", "the place and time where a story happens (Schauplatz, Handlungsort)"],
+  ["to recognize", "to know sb. or sth. because you have seen them before (erkennen)"],
+  ["habit", "sth. you do regularly, almost without thinking (Gewohnheit)"],
+  ["tense", "a verb form that shows when sth. happens, e.g. past, present or future (Zeitform)"],
+  ["to consider", "to think carefully about sth. (erwägen, bedenken)"],
+  ["orally", "by speaking, not in writing (mündlich)"],
+  ["either...or", "used to show a choice between two things (entweder ... oder)"],
+  ["to include", "to have sth. as part of a whole (enthalten, einschließen)"],
+  ["briefly", "in a few words, not in detail (kurz)"]
 ];
 const SPLIT = true;
+const LEFT = 1, CHIP = 0;
 const GROUPS = SPLIT ? [PAIRS.slice(0, 10), PAIRS.slice(10)] : [PAIRS];
 
 let correct = 0, wrong = 0, selectedChip = null, activeTab = 0;
@@ -101,10 +102,11 @@ function updateScore() {
 }
 
 function buildTab(pairs, containerId) {
-  const shuffledWords = shuffle(pairs.map(p => p[0]));
+  const shuffledWords = shuffle(pairs.map(p => p[CHIP]));
   const container = document.getElementById(containerId);
   container.innerHTML = '';
-  pairs.forEach(([word, def], i) => {
+  pairs.forEach((p, i) => {
+    const word = p[CHIP], def = p[LEFT];
     const row = document.createElement('div');
     row.className = 'pair-row';
 

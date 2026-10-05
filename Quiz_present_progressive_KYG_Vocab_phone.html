@@ -53,26 +53,27 @@ body { font-family: system-ui, sans-serif; background: #ffffff; color: #1a1a1a; 
 <script>
 // [Word, Definition] – Definition fix links, leerer Slot Mitte, Wort als Chip rechts
 const PAIRS = [
-  ["thoughtful", "appearing to be thinking seriously"],
-  ["lap", "the top part of your legs when you are sitting down"],
-  ["to rest sth. on", "to place or lean something gently against another thing"],
-  ["to belong", "to be someone's property"],
-  ["to notice", "to become aware of something"],
-  ["to seem", "to give the impression of being something"],
-  ["can't stand", "to dislike something very strongly"],
-  ["gradual", "happening slowly over a period of time"],
-  ["to access", "to reach, obtain or make use of something"],
-  ["development", "a change or growth that happens gradually over time"],
-  ["introductory", "used to introduce or lead into something"],
-  ["post", "a long piece of wood or metal fixed upright in the ground"],
-  ["state", "a condition or situation, rather than an action"],
-  ["sleeve", "the part of a piece of clothing that covers the arm"],
-  ["to prefer", "to like one thing more than another"],
-  ["sense", "one of the natural abilities (sight, hearing, smell, taste, touch) used to experience the world"],
-  ["possession", "the fact of having or owning something"],
-  ["to vary", "to change or to be different from one another"]
+  ["thoughtful", "appearing to be thinking seriously (nachdenklich)"],
+  ["lap", "the top part of your legs when you are sitting down (Schoß)"],
+  ["to rest sth. (something) on", "to place or lean sth. gently against another thing (etwas ablegen auf)"],
+  ["to belong", "to be sb. (somebody)'s property (gehören)"],
+  ["to notice", "to become aware of sth. (bemerken)"],
+  ["to seem", "to give the impression of being sth. (scheinen)"],
+  ["can't stand", "to dislike sth. very strongly (nicht ausstehen können)"],
+  ["gradual", "happening slowly over a period of time (allmählich)"],
+  ["to access", "to reach, obtain or make use of sth. (Zugang haben zu)"],
+  ["development", "a change or growth that happens gradually over time (Entwicklung)"],
+  ["introductory", "used to introduce or lead into sth. (einführend)"],
+  ["post", "a long piece of wood or metal fixed upright in the ground (Pfosten)"],
+  ["state", "a condition or situation, rather than an action (Zustand)"],
+  ["sleeve", "the part of a piece of clothing that covers the arm (Ärmel)"],
+  ["to prefer", "to like one thing more than another (bevorzugen)"],
+  ["sense", "one of the five ways to experience the world, e.g. sight or smell (Sinn)"],
+  ["possession", "the fact of having or owning sth. (Besitz)"],
+  ["to vary", "to change or to be different from one another (variieren, sich unterscheiden)"]
 ];
 const SPLIT = true;
+const LEFT = 1, CHIP = 0;
 const GROUPS = SPLIT ? [PAIRS.slice(0, 10), PAIRS.slice(10)] : [PAIRS];
 
 let correct = 0, wrong = 0, selectedChip = null, activeTab = 0;
@@ -99,10 +100,11 @@ function updateScore() {
 }
 
 function buildTab(pairs, containerId) {
-  const shuffledWords = shuffle(pairs.map(p => p[0]));
+  const shuffledWords = shuffle(pairs.map(p => p[CHIP]));
   const container = document.getElementById(containerId);
   container.innerHTML = '';
-  pairs.forEach(([word, def], i) => {
+  pairs.forEach((p, i) => {
+    const word = p[CHIP], def = p[LEFT];
     const row = document.createElement('div');
     row.className = 'pair-row';
 

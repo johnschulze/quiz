@@ -75,6 +75,7 @@ const PAIRS = [
   ["match", "a game between two teams or players (Spiel)"]
 ];
 const SPLIT = true;
+const LEFT = 1, CHIP = 0;
 const GROUPS = SPLIT ? [PAIRS.slice(0, 10), PAIRS.slice(10)] : [PAIRS];
 
 let correct = 0, wrong = 0, selectedChip = null, activeTab = 0;
@@ -101,10 +102,11 @@ function updateScore() {
 }
 
 function buildTab(pairs, containerId) {
-  const shuffledWords = shuffle(pairs.map(p => p[0]));
+  const shuffledWords = shuffle(pairs.map(p => p[CHIP]));
   const container = document.getElementById(containerId);
   container.innerHTML = '';
-  pairs.forEach(([word, def], i) => {
+  pairs.forEach((p, i) => {
+    const word = p[CHIP], def = p[LEFT];
     const row = document.createElement('div');
     row.className = 'pair-row';
 
