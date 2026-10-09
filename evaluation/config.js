@@ -8,8 +8,8 @@
 // type "yesno": Ja/Nein
 // Die Fragen-IDs (q1, q2, …) müssen im Format q + Zahl bleiben.
 const CONFIG = {
-  supabaseUrl: "HIER-EINTRAGEN",
-  supabaseKey: "HIER-EINTRAGEN",
+  supabaseUrl: "https://lzkvrlcyxcugryzbbpou.supabase.co",
+  supabaseKey: "sb_publishable_qIhY6NW3nR0ZMWsl6PRT_g_dT7nlZL-",
   title: "Evaluation (Beispiel)",
   intro: "Ihre Antworten sind anonym. Es wird kein Name abgefragt, und die Antworten werden nach 24 Stunden gelöscht.",
   questions: [
