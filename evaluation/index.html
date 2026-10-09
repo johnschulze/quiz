@@ -1,0 +1,419 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Live-Evaluation</title>
+<style>
+  :root { --navy:#1e3a5f; --navy-soft:#e8eef5; --line:#d5dde6; --ink:#1b2430; --muted:#5b6776; --ok:#1a7f4b; --warn:#b45309; --bad:#b42318; }
+  * { box-sizing:border-box; }
+  html { -webkit-text-size-adjust:100%; }
+  body { margin:0; background:#fff; color:var(--ink); font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif; line-height:1.4; }
+  main { max-width:760px; margin:0 auto; padding:16px 16px 48px; }
+  h1 { font-size:1.4rem; margin:0 0 .25rem; color:var(--navy); }
+  p.intro { margin:.2rem 0 1rem; color:var(--muted); }
+  .pill { display:inline-block; font-size:.8rem; padding:.15rem .6rem; border-radius:999px; border:1px solid var(--line); color:var(--muted); }
+  .pill.ok { color:var(--ok); border-color:#b7dfc9; background:#f1faf5; }
+  .pill.warn { color:var(--warn); border-color:#f3d3a6; background:#fff8ee; }
+  .pill.bad { color:var(--bad); border-color:#f1b9b3; background:#fff4f3; }
+  .row { display:flex; align-items:center; justify-content:space-between; gap:.5rem; flex-wrap:wrap; }
+  .btn { font:inherit; border:0; border-radius:10px; padding:.8rem 1.1rem; background:var(--navy); color:#fff; cursor:pointer; }
+  .btn.sec { background:#fff; color:var(--navy); border:1.5px solid var(--navy); }
+  .btn:disabled { opacity:.5; }
+  .card { border:1px solid var(--line); border-radius:14px; padding:14px; margin:12px 0; }
+  .card h2 { font-size:1.05rem; margin:0 0 .7rem; font-weight:600; }
+  .num { color:var(--muted); font-weight:500; margin-right:.3rem; }
+
+  /* Teilnehmeransicht */
+  .scale { display:grid; grid-template-columns:repeat(5,1fr); gap:8px; }
+  .scale button, .yn button { font:inherit; font-size:1.25rem; font-weight:600; min-height:54px; border-radius:12px; border:1.5px solid var(--navy); background:#fff; color:var(--navy); cursor:pointer; touch-action:manipulation; }
+  .yn { display:grid; grid-template-columns:1fr 1fr; gap:8px; }
+  .scale button.sel, .yn button.sel { background:var(--navy); color:#fff; }
+  .ends { display:flex; justify-content:space-between; gap:1rem; font-size:.82rem; color:var(--muted); margin-top:.4rem; }
+  .done { background:#f1faf5; border:1px solid #b7dfc9; color:#14532d; border-radius:14px; padding:14px; margin:12px 0; }
+  .closed { background:#fff8ee; border:1px solid #f3d3a6; color:#7a3d06; border-radius:14px; padding:14px; margin:12px 0; }
+
+  /* Hostansicht */
+  .host { display:grid; grid-template-columns:1fr; gap:16px; }
+  @media (min-width:900px) { main.wide { max-width:1200px; } .host { grid-template-columns:300px 1fr; align-items:start; } .join { position:sticky; top:16px; } }
+  .join { text-align:center; }
+  .join svg { width:100%; max-width:260px; height:auto; }
+  .join .code { font-size:1.6rem; letter-spacing:.15em; font-weight:700; color:var(--navy); }
+  .join .url { font-size:.78rem; color:var(--muted); word-break:break-all; }
+  .stats { display:flex; gap:10px; flex-wrap:wrap; margin:.5rem 0; }
+  .stat { flex:1 1 120px; background:var(--navy-soft); border-radius:12px; padding:.6rem .8rem; }
+  .stat b { display:block; font-size:1.8rem; color:var(--navy); line-height:1.1; }
+  .stat span { font-size:.8rem; color:var(--muted); }
+  .bar { display:grid; grid-template-columns:2.2rem 1fr 3.6rem; align-items:center; gap:8px; margin:.28rem 0; font-size:1rem; }
+  .bar .lab { font-weight:600; color:var(--navy); }
+  .bar .track { background:var(--navy-soft); border-radius:6px; height:26px; overflow:hidden; }
+  .bar .fill { height:100%; width:0; background:var(--navy); border-radius:6px; transition:width .5s ease; }
+  .bar .val { text-align:right; font-variant-numeric:tabular-nums; color:var(--muted); font-size:.9rem; }
+  .avg { margin-top:.4rem; font-size:.9rem; color:var(--muted); }
+  .bar.yn-row { grid-template-columns:3rem 1fr 4.4rem; }
+  .small { font-size:.85rem; color:var(--muted); }
+  .hidden { display:none !important; }
+</style>
+</head>
+<body>
+<main id="app"></main>
+
+<script src="lib/peerjs.min.js"></script>
+<script src="lib/qrcode.js"></script>
+<script src="config.js"></script>
+<script>
+(function () {
+  "use strict";
+
+  var app = document.getElementById("app");
+  var params = new URLSearchParams(location.search);
+  var ROOM = (params.get("r") || "").toUpperCase().replace(/[^A-Z0-9]/g, "");
+  var PREFIX = "jsz-eval-";
+  var ALPHABET = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+
+  document.title = CONFIG.title;
+
+  // ---------- kleine Helfer ----------
+  function h(tag, attrs, children) {
+    var el = document.createElement(tag);
+    if (attrs) Object.keys(attrs).forEach(function (k) {
+      if (k === "class") el.className = attrs[k];
+      else if (k === "text") el.textContent = attrs[k];
+      else if (k.slice(0, 2) === "on") el.addEventListener(k.slice(2), attrs[k]);
+      else el.setAttribute(k, attrs[k]);
+    });
+    (children || []).forEach(function (c) { if (c) el.appendChild(typeof c === "string" ? document.createTextNode(c) : c); });
+    return el;
+  }
+  function randomString(n, alphabet) {
+    var out = "", arr = new Uint32Array(n);
+    (window.crypto || window.msCrypto).getRandomValues(arr);
+    for (var i = 0; i < n; i++) out += alphabet[arr[i] % alphabet.length];
+    return out;
+  }
+  function ss(get, key, val) {
+    try { if (get) return sessionStorage.getItem(key); sessionStorage.setItem(key, val); } catch (e) { return null; }
+  }
+  function ssRemove(key) { try { sessionStorage.removeItem(key); } catch (e) {} }
+  function fmt(x) { return (Math.round(x * 10) / 10).toString().replace(".", ","); }
+  function baseUrl() { return location.origin + location.pathname; }
+
+  // ---------- Startseite ----------
+  function renderLanding() {
+    app.innerHTML = "";
+    app.appendChild(h("h1", { text: CONFIG.title }));
+    app.appendChild(h("p", { class: "intro", text: "Zum Mitmachen bitte den QR-Code scannen, den die Lehrkraft anzeigt." }));
+    app.appendChild(h("div", { class: "card" }, [
+      h("h2", { text: "Für die Lehrkraft" }),
+      h("p", { class: "small", text: "Startet eine neue Runde. Dieses Fenster muss während der Evaluation geöffnet bleiben. Es werden keine Antworten gespeichert; beim Schließen sind alle Daten weg." }),
+      h("button", { class: "btn", text: "Neue Runde starten", onclick: function () { location.search = "?host=1"; } })
+    ]));
+  }
+
+  // ---------- Hostansicht ----------
+  function renderHost() {
+    var code = ss(true, "evalHostCode") || randomString(5, ALPHABET);
+    ss(false, "evalHostCode", code);
+    var clients = {};       // token -> { answers:{}, conn, lastSeen }
+    var isOpen = true;
+    var round = Number(ss(true, "evalRound") || 0) || Date.now();
+    ss(false, "evalRound", String(round));
+    var peer = null, retries = 0, signal = "verbinde …", signalClass = "warn";
+    var wakeLock = null;
+
+    app.className = "wide";
+    app.innerHTML = "";
+
+    var joinUrl = baseUrl() + "?r=" + code;
+    var qrBox = h("div", { class: "qr" });
+    qrBox.appendChild(makeQr(joinUrl));
+
+    var elSignal = h("span", { class: "pill warn", text: "Server: verbinde …" });
+    var elConn = h("b", { text: "0" });
+    var elAns = h("b", { text: "0" });
+    var btnToggle = h("button", { class: "btn sec", text: "Abstimmung beenden", onclick: function () { isOpen = !isOpen; broadcast(stateMsg()); update(); } });
+    var btnReset = h("button", { class: "btn sec", text: "Neue Runde (zurücksetzen)", onclick: function () {
+      if (!confirm("Alle bisherigen Antworten löschen und eine neue Runde starten?")) return;
+      clients = {}; isOpen = true; round = Date.now(); ss(false, "evalRound", String(round)); broadcast(stateMsg()); update();
+    } });
+
+    var join = h("div", { class: "card join" }, [
+      h("div", { class: "small", text: "Zum Mitmachen scannen" }),
+      qrBox,
+      h("div", { class: "code", text: code }),
+      h("div", { class: "url", text: joinUrl })
+    ]);
+
+    var results = h("div", { class: "results" });
+    var qEls = CONFIG.questions.map(function (q, i) {
+      var body = h("div", { class: "body" });
+      var avg = h("div", { class: "avg" });
+      results.appendChild(h("div", { class: "card" }, [
+        h("h2", {}, [h("span", { class: "num", text: (i + 1) + "." }), q.text]),
+        body, avg
+      ]));
+      return { q: q, body: body, avg: avg, rows: {} };
+    });
+    // Balkenzeilen einmal aufbauen, danach nur noch Breite/Zahl ändern
+    qEls.forEach(function (e) {
+      var labels = e.q.type === "scale" ? ["1", "2", "3", "4", "5"] : ["Ja", "Nein"];
+      labels.forEach(function (lab) {
+        var fill = h("div", { class: "fill" }), val = h("div", { class: "val", text: "0" });
+        e.body.appendChild(h("div", { class: "bar" + (e.q.type === "yesno" ? " yn-row" : "") }, [
+          h("div", { class: "lab", text: lab }), h("div", { class: "track" }, [fill]), val
+        ]));
+        e.rows[lab] = { fill: fill, val: val };
+      });
+      if (e.q.type === "scale") e.body.appendChild(h("div", { class: "ends" }, [h("span", { text: "1 = " + e.q.low }), h("span", { text: "5 = " + e.q.high })]));
+    });
+
+    app.appendChild(h("div", { class: "row" }, [h("h1", { text: CONFIG.title }), elSignal]));
+    app.appendChild(h("div", { class: "host" }, [
+      h("div", {}, [join, h("div", { class: "row" }, [btnToggle, btnReset]), h("p", { class: "small", text: "Dieses Fenster geöffnet lassen. Es werden keine Antworten gespeichert; beim Schließen sind alle Daten weg." })]),
+      h("div", {}, [
+        h("div", { class: "stats" }, [
+          h("div", { class: "stat" }, [elConn, h("span", { text: "Geräte verbunden" })]),
+          h("div", { class: "stat" }, [elAns, h("span", { text: "haben geantwortet" })])
+        ]),
+        results
+      ])
+    ]));
+
+    function stateMsg() { return { t: "state", open: isOpen, round: round }; }
+    function broadcast(msg) {
+      Object.keys(clients).forEach(function (tk) {
+        var c = clients[tk].conn;
+        if (c && c.open) { try { c.send(msg); } catch (e) {} }
+      });
+    }
+
+    function update() {
+      var now = Date.now(), connected = 0, answered = 0;
+      Object.keys(clients).forEach(function (tk) {
+        var c = clients[tk];
+        if (c.conn && c.conn.open && now - c.lastSeen < 30000) connected++;
+        if (Object.keys(c.answers).length) answered++;
+      });
+      elConn.textContent = connected;
+      elAns.textContent = answered;
+      btnToggle.textContent = isOpen ? "Abstimmung beenden" : "Abstimmung wieder öffnen";
+      elSignal.className = "pill " + signalClass;
+      elSignal.textContent = "Server: " + signal;
+
+      qEls.forEach(function (e) {
+        var counts = {}, n = 0, sum = 0;
+        Object.keys(e.rows).forEach(function (k) { counts[k] = 0; });
+        Object.keys(clients).forEach(function (tk) {
+          var v = clients[tk].answers[e.q.id];
+          if (v === undefined || v === null) return;
+          var key = e.q.type === "scale" ? String(v) : (v === "ja" ? "Ja" : "Nein");
+          if (counts[key] === undefined) return;
+          counts[key]++; n++; if (e.q.type === "scale") sum += Number(v);
+        });
+        Object.keys(e.rows).forEach(function (k) {
+          var pct = n ? (counts[k] / n) * 100 : 0;
+          e.rows[k].fill.style.width = pct + "%";
+          e.rows[k].val.textContent = counts[k] + (e.q.type === "yesno" && n ? " (" + Math.round(pct) + " %)" : "");
+        });
+        e.avg.textContent = e.q.type === "scale" && n ? "Mittelwert: " + fmt(sum / n) + " (n = " + n + ")" : (n ? "n = " + n : "");
+      });
+    }
+
+    function handle(conn, msg) {
+      if (!msg || typeof msg !== "object") return;
+      var tk = typeof msg.token === "string" ? msg.token.slice(0, 40) : conn.__token;
+      if (!tk) return;
+      conn.__token = tk;
+      var c = clients[tk] || (clients[tk] = { answers: {}, conn: null, lastSeen: 0 });
+      c.conn = conn; c.lastSeen = Date.now();
+      if (msg.t === "hello" || msg.t === "ping") { try { conn.send(stateMsg()); } catch (e) {} }
+      if ((msg.t === "sync" || msg.t === "answer") && isOpen) {
+        var incoming = msg.t === "sync" ? msg.answers : (function () { var o = {}; o[msg.q] = msg.v; return o; })();
+        CONFIG.questions.forEach(function (q) {
+          if (!incoming || !(q.id in incoming)) return;
+          var v = incoming[q.id];
+          if (q.type === "scale" && [1, 2, 3, 4, 5].indexOf(Number(v)) > -1) c.answers[q.id] = Number(v);
+          if (q.type === "yesno" && (v === "ja" || v === "nein")) c.answers[q.id] = v;
+        });
+      }
+      if (msg.t === "sync" || msg.t === "answer") { try { conn.send(stateMsg()); } catch (e) {} }
+      update();
+    }
+
+    function start() {
+      peer = new Peer(PREFIX + code, { debug: 0 });
+      peer.on("open", function () { retries = 0; signal = "bereit"; signalClass = "ok"; update(); });
+      peer.on("connection", function (conn) {
+        conn.on("data", function (msg) { handle(conn, msg); });
+        conn.on("close", update);
+        conn.on("error", update);
+      });
+      peer.on("disconnected", function () { signal = "getrennt – verbinde neu …"; signalClass = "warn"; update(); try { peer.reconnect(); } catch (e) {} });
+      peer.on("error", function (err) {
+        if (err && err.type === "unavailable-id" && retries < 6) {
+          // Nach einem Neuladen ist die alte Registrierung manchmal noch kurz belegt.
+          retries++; signal = "warte auf Freigabe …"; signalClass = "warn"; update();
+          try { peer.destroy(); } catch (e) {}
+          setTimeout(start, 3000);
+        } else if (err && err.type === "unavailable-id") {
+          ssRemove("evalHostCode"); location.reload();
+        } else {
+          signal = "Fehler (" + (err && err.type || "unbekannt") + ")"; signalClass = "bad"; update();
+        }
+      });
+    }
+
+    function keepAwake() {
+      if (!("wakeLock" in navigator)) return;
+      navigator.wakeLock.request("screen").then(function (l) { wakeLock = l; }).catch(function () {});
+    }
+    document.addEventListener("visibilitychange", function () { if (document.visibilityState === "visible") keepAwake(); });
+    keepAwake();
+
+    start();
+    setInterval(update, 2000);
+    update();
+  }
+
+  function makeQr(text) {
+    var qr = qrcode(0, "M");
+    qr.addData(text); qr.make();
+    var n = qr.getModuleCount(), m = 2, size = n + m * 2, path = "";
+    for (var r = 0; r < n; r++) for (var c = 0; c < n; c++) if (qr.isDark(r, c)) path += "M" + (c + m) + " " + (r + m) + "h1v1h-1z";
+    var wrap = document.createElement("div");
+    wrap.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ' + size + " " + size + '" shape-rendering="crispEdges" role="img" aria-label="QR-Code zum Mitmachen"><rect width="' + size + '" height="' + size + '" fill="#fff"/><path d="' + path + '" fill="#000"/></svg>';
+    return wrap.firstChild;
+  }
+
+  // ---------- Teilnehmeransicht ----------
+  function renderParticipant() {
+    var tokenKey = "evalToken-" + ROOM, ansKey = "evalAnswers-" + ROOM;
+    var token = ss(true, tokenKey);
+    if (!token) { token = randomString(24, "abcdefghijklmnopqrstuvwxyz0123456789"); ss(false, tokenKey, token); }
+    var answers = {};
+    try { answers = JSON.parse(ss(true, ansKey) || "{}") || {}; } catch (e) { answers = {}; }
+
+    var knownRound = ss(true, "evalRoundSeen-" + ROOM), synced = false;
+    var peer = null, conn = null, lastRx = 0, isOpen = true, status = "verbinde …", statusClass = "warn", retryTimer = null, pingTimer = null;
+
+    app.innerHTML = "";
+    var elStatus = h("span", { class: "pill warn", text: "verbinde …" });
+    var elProgress = h("div", { class: "small" });
+    var elMsg = h("div");
+    var cards = h("div");
+    app.appendChild(h("div", { class: "row" }, [h("h1", { text: CONFIG.title }), elStatus]));
+    app.appendChild(h("p", { class: "intro", text: CONFIG.intro }));
+    app.appendChild(elProgress);
+    app.appendChild(elMsg);
+    app.appendChild(cards);
+
+    var btns = {};
+    CONFIG.questions.forEach(function (q, i) {
+      var group = h("div", { class: q.type === "scale" ? "scale" : "yn" });
+      btns[q.id] = {};
+      var options = q.type === "scale" ? [1, 2, 3, 4, 5] : ["ja", "nein"];
+      options.forEach(function (v) {
+        var b = h("button", { type: "button", text: q.type === "scale" ? String(v) : (v === "ja" ? "Ja" : "Nein"), onclick: function () { choose(q.id, v); } });
+        btns[q.id][v] = b; group.appendChild(b);
+      });
+      cards.appendChild(h("div", { class: "card" }, [
+        h("h2", {}, [h("span", { class: "num", text: (i + 1) + "." }), q.text]),
+        group,
+        q.type === "scale" ? h("div", { class: "ends" }, [h("span", { text: "1 = " + q.low }), h("span", { text: "5 = " + q.high })]) : null
+      ]));
+    });
+
+    function choose(qid, v) {
+      if (!isOpen) return;
+      answers[qid] = v; ss(false, ansKey, JSON.stringify(answers));
+      send({ t: "answer", token: token, q: qid, v: v });
+      draw();
+    }
+    function send(msg) { if (conn && conn.open) { try { conn.send(msg); } catch (e) {} } }
+
+    function draw() {
+      elStatus.className = "pill " + statusClass; elStatus.textContent = status;
+      var done = 0;
+      CONFIG.questions.forEach(function (q) {
+        var sel = answers[q.id];
+        if (sel !== undefined) done++;
+        Object.keys(btns[q.id]).forEach(function (k) {
+          var on = String(sel) === String(k);
+          btns[q.id][k].className = on ? "sel" : "";
+          btns[q.id][k].setAttribute("aria-pressed", on ? "true" : "false");
+          btns[q.id][k].disabled = !isOpen;
+        });
+      });
+      elProgress.textContent = done + " von " + CONFIG.questions.length + " beantwortet";
+      elMsg.innerHTML = "";
+      if (!isOpen) elMsg.appendChild(h("div", { class: "closed", text: "Die Abstimmung ist beendet. Ihre Antworten wurden übermittelt." }));
+      else if (done === CONFIG.questions.length) elMsg.appendChild(h("div", { class: "done", text: "Vielen Dank! Sie können Ihre Antworten bis zum Ende der Abstimmung noch ändern." }));
+    }
+
+    function setStatus(text, cls) { status = text; statusClass = cls; draw(); }
+
+    function connect() {
+      clearTimeout(retryTimer);
+      if (peer) { try { peer.destroy(); } catch (e) {} }
+      setStatus("verbinde …", "warn");
+      peer = new Peer({ debug: 0 });
+      peer.on("open", function () {
+        conn = peer.connect(PREFIX + ROOM, { reliable: true });
+        var opened = false;
+        conn.on("open", function () {
+          opened = true; lastRx = Date.now();
+          setStatus("verbunden", "ok");
+          synced = false;
+          send({ t: "hello", token: token });
+        });
+        conn.on("data", function (msg) {
+          lastRx = Date.now();
+          if (!msg) return;
+          if (msg.t === "state") {
+            isOpen = !!msg.open;
+            var r = String(msg.round);
+            if (knownRound !== null && knownRound !== r) { answers = {}; ssRemove(ansKey); }
+            knownRound = r; ss(false, "evalRoundSeen-" + ROOM, r);
+            if (!synced) { synced = true; send({ t: "sync", token: token, answers: answers }); }
+            draw();
+          }
+        });
+        conn.on("close", function () { if (opened) retry("Verbindung getrennt – versuche erneut …"); });
+        conn.on("error", function () { retry("Verbindungsfehler – versuche erneut …"); });
+      });
+      peer.on("error", function (err) {
+        if (err && err.type === "peer-unavailable") retry("Raum nicht gefunden – bitte QR-Code erneut scannen", 4000);
+        else retry("Verbindung nicht möglich – versuche erneut …", 4000);
+      });
+      peer.on("disconnected", function () { try { peer.reconnect(); } catch (e) {} });
+    }
+    function retry(text, delay) {
+      setStatus(text, "bad");
+      clearTimeout(retryTimer);
+      retryTimer = setTimeout(connect, delay || 2000);
+    }
+
+    // Lebenszeichen: Host antwortet auf Ping; bleibt es still, wird neu verbunden.
+    pingTimer = setInterval(function () {
+      if (conn && conn.open) {
+        send({ t: "ping", token: token });
+        if (Date.now() - lastRx > 25000) { try { conn.close(); } catch (e) {} retry("Verbindung verloren – versuche erneut …"); }
+      }
+    }, 8000);
+    document.addEventListener("visibilitychange", function () {
+      if (document.visibilityState === "visible" && !(conn && conn.open)) connect();
+    });
+
+    draw();
+    connect();
+  }
+
+  // ---------- Start ----------
+  if (ROOM) renderParticipant();
+  else if (params.get("host")) renderHost();
+  else renderLanding();
+})();
+</script>
+</body>
+</html>
