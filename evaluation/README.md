@@ -1,7 +1,8 @@
-# Live-Evaluation (anonym, ohne Speicherung)
+# Live-Evaluation (anonym, mit Supabase)
 
-- `index.html` – Lehrkraft: Seite öffnen, „Neue Runde starten“; Teilnehmende scannen den QR-Code.
-- `config.js` – Fragen (Skala 1–5 oder Ja/Nein) hier ändern.
-- `lib/` – PeerJS (MIT) und qrcode-generator (MIT), lokal eingebunden.
+- `index.html` – Lehrkraft: Seite öffnen, „Neue Runde starten“; Schüler scannen den QR-Code.
+- `config.js` – Zugangsdaten (öffentlicher Supabase-Schlüssel) und Fragen (Skala 1–5 oder Ja/Nein).
+- `supabase.sql` – Datenbank-Schema, einmal im Supabase-SQL-Editor ausführen.
+- `lib/qrcode.js` – qrcode-generator (MIT).
 
-Antworten gehen direkt (WebRTC) vom Handy an das geöffnete Lehrkraft-Fenster. Es gibt keine Datenbank; beim Schließen des Fensters sind alle Daten weg.
+Es werden keine Namen abgefragt. Direkter Tabellenzugriff ist gesperrt, die Seite ruft nur die Funktionen aus `supabase.sql` auf. Räume und Antworten werden nach 24 Stunden automatisch gelöscht.

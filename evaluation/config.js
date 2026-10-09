@@ -1,9 +1,17 @@
-// Fragen der Evaluation – hier anpassen.
+// Einstellungen und Fragen der Evaluation – hier anpassen.
+//
+// supabaseUrl / supabaseKey: Project URL und öffentlicher Schlüssel ("anon" bzw. "publishable")
+// aus Supabase unter Project Settings → API. Dieser Schlüssel ist für die Veröffentlichung
+// gedacht. NIEMALS den "service_role"- oder "secret"-Schlüssel oder das Datenbank-Passwort eintragen.
+//
 // type "scale": Skala 1–5 (low = Beschriftung für 1, high = Beschriftung für 5)
 // type "yesno": Ja/Nein
+// Die Fragen-IDs (q1, q2, …) müssen im Format q + Zahl bleiben.
 const CONFIG = {
+  supabaseUrl: "HIER-EINTRAGEN",
+  supabaseKey: "HIER-EINTRAGEN",
   title: "Evaluation (Beispiel)",
-  intro: "Ihre Antworten sind anonym. Es werden weder Ihr Name noch Ihr Gerät gespeichert.",
+  intro: "Ihre Antworten sind anonym. Es wird kein Name abgefragt, und die Antworten werden nach 24 Stunden gelöscht.",
   questions: [
     { id: "q1", type: "scale", text: "Die Erklärungen im Unterricht sind für mich verständlich.", low: "trifft nicht zu", high: "trifft voll zu" },
     { id: "q2", type: "scale", text: "Das Arbeitstempo im Unterricht ist für mich …", low: "viel zu langsam", high: "viel zu schnell" },

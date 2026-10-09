@@ -24,6 +24,7 @@
   .card { border:1px solid var(--line); border-radius:14px; padding:14px; margin:12px 0; }
   .card h2 { font-size:1.05rem; margin:0 0 .7rem; font-weight:600; }
   .num { color:var(--muted); font-weight:500; margin-right:.3rem; }
+  .setup { background:#fff8ee; border:1px solid #f3d3a6; color:#7a3d06; border-radius:14px; padding:14px; margin:12px 0; }
 
   /* Teilnehmeransicht */
   .scale { display:grid; grid-template-columns:repeat(5,1fr); gap:8px; }
@@ -53,13 +54,11 @@
   .avg { margin-top:.4rem; font-size:.9rem; color:var(--muted); }
   .bar.yn-row { grid-template-columns:3rem 1fr 4.4rem; }
   .small { font-size:.85rem; color:var(--muted); }
-  .hidden { display:none !important; }
 </style>
 </head>
 <body>
 <main id="app"></main>
 
-<script src="lib/peerjs.min.js"></script>
 <script src="lib/qrcode.js"></script>
 <script src="config.js"></script>
 <script>
@@ -69,14 +68,8 @@
   var app = document.getElementById("app");
   var params = new URLSearchParams(location.search);
   var ROOM = (params.get("r") || "").toUpperCase().replace(/[^A-Z0-9]/g, "");
-  var PREFIX = "jsz-eval-";
-  var ICE = [
-    { urls: "stun:stun.l.google.com:19302" },
-    { urls: "stun:global.stun.twilio.com:3478" },
-    { urls: ["turn:eu-0.turn.peerjs.com:3478", "turn:us-0.turn.peerjs.com:3478"], username: "peerjs", credential: "peerjsp" },
-    { urls: ["turn:openrelay.metered.ca:80", "turn:openrelay.metered.ca:443", "turns:openrelay.metered.ca:443?transport=tcp"], username: "openrelayproject", credential: "openrelayproject" }
-  ];
   var ALPHABET = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+  var configured = /^https:\/\/[a-z0-9-]+\.supabase\.co\/?$/i.test(CONFIG.supabaseUrl || "") && (CONFIG.supabaseKey || "").length > 20 && CONFIG.supabaseKey !== "HIER-EINTRAGEN";
 
   document.title = CONFIG.title;
 
@@ -98,12 +91,35 @@
     for (var i = 0; i < n; i++) out += alphabet[arr[i] % alphabet.length];
     return out;
   }
-  function ss(get, key, val) {
-    try { if (get) return sessionStorage.getItem(key); sessionStorage.setItem(key, val); } catch (e) { return null; }
-  }
+  function ssGet(key) { try { return sessionStorage.getItem(key); } catch (e) { return null; } }
+  function ssSet(key, val) { try { sessionStorage.setItem(key, val); } catch (e) {} }
   function ssRemove(key) { try { sessionStorage.removeItem(key); } catch (e) {} }
   function fmt(x) { return (Math.round(x * 10) / 10).toString().replace(".", ","); }
   function baseUrl() { return location.origin + location.pathname; }
+
+  // Aufruf einer Datenbankfunktion (Supabase REST)
+  function rpc(fn, args) {
+    var headers = { "Content-Type": "application/json", "apikey": CONFIG.supabaseKey };
+    if (CONFIG.supabaseKey.indexOf("eyJ") === 0) headers["Authorization"] = "Bearer " + CONFIG.supabaseKey;
+    return fetch(CONFIG.supabaseUrl.replace(/\/$/, "") + "/rest/v1/rpc/" + fn, {
+      method: "POST", headers: headers, body: JSON.stringify(args || {}), cache: "no-store"
+    }).then(function (res) {
+      return res.text().then(function (txt) {
+        var data = null; try { data = txt ? JSON.parse(txt) : null; } catch (e) {}
+        if (!res.ok) { var err = new Error((data && (data.message || data.hint)) || ("HTTP " + res.status)); err.status = res.status; throw err; }
+        return data;
+      });
+    });
+  }
+
+  function setupHint() {
+    app.innerHTML = "";
+    app.appendChild(h("h1", { text: CONFIG.title }));
+    app.appendChild(h("div", { class: "setup" }, [
+      h("b", { text: "Einrichtung fehlt." }),
+      h("p", { text: "In config.js sind die Supabase-Zugangsdaten (supabaseUrl und supabaseKey) noch nicht eingetragen." })
+    ]));
+  }
 
   // ---------- Startseite ----------
   function renderLanding() {
@@ -112,21 +128,17 @@
     app.appendChild(h("p", { class: "intro", text: "Zum Mitmachen bitte den QR-Code scannen, den die Lehrkraft anzeigt." }));
     app.appendChild(h("div", { class: "card" }, [
       h("h2", { text: "Für die Lehrkraft" }),
-      h("p", { class: "small", text: "Startet eine neue Runde. Dieses Fenster muss während der Evaluation geöffnet bleiben. Es werden keine Antworten gespeichert; beim Schließen sind alle Daten weg." }),
+      h("p", { class: "small", text: "Startet eine neue Runde mit eigenem Raumcode. Räume und Antworten werden nach 24 Stunden automatisch gelöscht." }),
       h("button", { class: "btn", text: "Neue Runde starten", onclick: function () { location.search = "?host=1"; } })
     ]));
   }
 
   // ---------- Hostansicht ----------
   function renderHost() {
-    var code = ss(true, "evalHostCode") || randomString(5, ALPHABET);
-    ss(false, "evalHostCode", code);
-    var clients = {};       // token -> { answers:{}, conn, lastSeen }
-    var isOpen = true;
-    var round = Number(ss(true, "evalRound") || 0) || Date.now();
-    ss(false, "evalRound", String(round));
-    var peer = null, retries = 0, signal = "verbinde …", signalClass = "warn";
-    var wakeLock = null;
+    var code = ssGet("evalHostCode") || randomString(5, ALPHABET);
+    var hostKey = ssGet("evalHostKey") || randomString(32, "abcdefghijklmnopqrstuvwxyz0123456789");
+    ssSet("evalHostCode", code); ssSet("evalHostKey", hostKey);
+    var isOpen = true, ready = false, wakeLock = null;
 
     app.className = "wide";
     app.innerHTML = "";
@@ -136,12 +148,13 @@
     qrBox.appendChild(makeQr(joinUrl));
 
     var elSignal = h("span", { class: "pill warn", text: "Server: verbinde …" });
-    var elConn = h("b", { text: "0" });
     var elAns = h("b", { text: "0" });
-    var btnToggle = h("button", { class: "btn sec", text: "Abstimmung beenden", onclick: function () { isOpen = !isOpen; broadcast(stateMsg()); update(); } });
+    var btnToggle = h("button", { class: "btn sec", text: "Abstimmung beenden", onclick: function () {
+      rpc("set_room_open", { p_room: code, p_host_key: hostKey, p_open: !isOpen }).then(poll).catch(fail);
+    } });
     var btnReset = h("button", { class: "btn sec", text: "Neue Runde (zurücksetzen)", onclick: function () {
       if (!confirm("Alle bisherigen Antworten löschen und eine neue Runde starten?")) return;
-      clients = {}; isOpen = true; round = Date.now(); ss(false, "evalRound", String(round)); broadcast(stateMsg()); update();
+      rpc("reset_room", { p_room: code, p_host_key: hostKey }).then(poll).catch(fail);
     } });
 
     var join = h("div", { class: "card join" }, [
@@ -161,7 +174,6 @@
       ]));
       return { q: q, body: body, avg: avg, rows: {} };
     });
-    // Balkenzeilen einmal aufbauen, danach nur noch Breite/Zahl ändern
     qEls.forEach(function (e) {
       var labels = e.q.type === "scale" ? ["1", "2", "3", "4", "5"] : ["Ja", "Nein"];
       labels.forEach(function (lab) {
@@ -176,110 +188,58 @@
 
     app.appendChild(h("div", { class: "row" }, [h("h1", { text: CONFIG.title }), elSignal]));
     app.appendChild(h("div", { class: "host" }, [
-      h("div", {}, [join, h("div", { class: "row" }, [btnToggle, btnReset]), h("p", { class: "small", text: "Dieses Fenster geöffnet lassen. Es werden keine Antworten gespeichert; beim Schließen sind alle Daten weg." })]),
+      h("div", {}, [join, h("div", { class: "row" }, [btnToggle, btnReset]), h("p", { class: "small", text: "Räume und Antworten werden nach 24 Stunden automatisch gelöscht. Mit „Neue Runde“ löschst du sie sofort." })]),
       h("div", {}, [
-        h("div", { class: "stats" }, [
-          h("div", { class: "stat" }, [elConn, h("span", { text: "Geräte verbunden" })]),
-          h("div", { class: "stat" }, [elAns, h("span", { text: "haben geantwortet" })])
-        ]),
+        h("div", { class: "stats" }, [h("div", { class: "stat" }, [elAns, h("span", { text: "haben geantwortet" })])]),
         results
       ])
     ]));
 
-    function stateMsg() { return { t: "state", open: isOpen, round: round }; }
-    function broadcast(msg) {
-      Object.keys(clients).forEach(function (tk) {
-        var c = clients[tk].conn;
-        if (c && c.open) { try { c.send(msg); } catch (e) {} }
-      });
-    }
+    function signal(text, cls) { elSignal.className = "pill " + cls; elSignal.textContent = "Server: " + text; }
+    function fail(err) { signal("Fehler (" + (err && err.message || "?") + ")", "bad"); }
 
-    function update() {
-      var now = Date.now(), connected = 0, answered = 0;
-      Object.keys(clients).forEach(function (tk) {
-        var c = clients[tk];
-        if (c.conn && c.conn.open && now - c.lastSeen < 30000) connected++;
-        if (Object.keys(c.answers).length) answered++;
-      });
-      elConn.textContent = connected;
-      elAns.textContent = answered;
+    function render(data) {
+      isOpen = !!data.open;
       btnToggle.textContent = isOpen ? "Abstimmung beenden" : "Abstimmung wieder öffnen";
-      elSignal.className = "pill " + signalClass;
-      elSignal.textContent = "Server: " + signal;
-
+      elAns.textContent = data.participants || 0;
+      var counts = data.counts || {};
       qEls.forEach(function (e) {
-        var counts = {}, n = 0, sum = 0;
-        Object.keys(e.rows).forEach(function (k) { counts[k] = 0; });
-        Object.keys(clients).forEach(function (tk) {
-          var v = clients[tk].answers[e.q.id];
-          if (v === undefined || v === null) return;
-          var key = e.q.type === "scale" ? String(v) : (v === "ja" ? "Ja" : "Nein");
-          if (counts[key] === undefined) return;
-          counts[key]++; n++; if (e.q.type === "scale") sum += Number(v);
+        var c = counts[e.q.id] || {}, n = 0, sum = 0, vals = {};
+        Object.keys(e.rows).forEach(function (lab) {
+          var key = e.q.type === "scale" ? lab : lab.toLowerCase();
+          vals[lab] = Number(c[key] || 0); n += vals[lab];
+          if (e.q.type === "scale") sum += vals[lab] * Number(lab);
         });
-        Object.keys(e.rows).forEach(function (k) {
-          var pct = n ? (counts[k] / n) * 100 : 0;
-          e.rows[k].fill.style.width = pct + "%";
-          e.rows[k].val.textContent = counts[k] + (e.q.type === "yesno" && n ? " (" + Math.round(pct) + " %)" : "");
+        Object.keys(e.rows).forEach(function (lab) {
+          var pct = n ? (vals[lab] / n) * 100 : 0;
+          e.rows[lab].fill.style.width = pct + "%";
+          e.rows[lab].val.textContent = vals[lab] + (e.q.type === "yesno" && n ? " (" + Math.round(pct) + " %)" : "");
         });
         e.avg.textContent = e.q.type === "scale" && n ? "Mittelwert: " + fmt(sum / n) + " (n = " + n + ")" : (n ? "n = " + n : "");
       });
     }
 
-    function handle(conn, msg) {
-      if (!msg || typeof msg !== "object") return;
-      var tk = typeof msg.token === "string" ? msg.token.slice(0, 40) : conn.__token;
-      if (!tk) return;
-      conn.__token = tk;
-      var c = clients[tk] || (clients[tk] = { answers: {}, conn: null, lastSeen: 0 });
-      c.conn = conn; c.lastSeen = Date.now();
-      if (msg.t === "hello" || msg.t === "ping") { try { conn.send(stateMsg()); } catch (e) {} }
-      if ((msg.t === "sync" || msg.t === "answer") && isOpen) {
-        var incoming = msg.t === "sync" ? msg.answers : (function () { var o = {}; o[msg.q] = msg.v; return o; })();
-        CONFIG.questions.forEach(function (q) {
-          if (!incoming || !(q.id in incoming)) return;
-          var v = incoming[q.id];
-          if (q.type === "scale" && [1, 2, 3, 4, 5].indexOf(Number(v)) > -1) c.answers[q.id] = Number(v);
-          if (q.type === "yesno" && (v === "ja" || v === "nein")) c.answers[q.id] = v;
-        });
-      }
-      if (msg.t === "sync" || msg.t === "answer") { try { conn.send(stateMsg()); } catch (e) {} }
-      update();
-    }
-
-    function start() {
-      peer = new Peer(PREFIX + code, { debug: 0, config: { iceServers: ICE } });
-      peer.on("open", function () { retries = 0; signal = "bereit"; signalClass = "ok"; update(); });
-      peer.on("connection", function (conn) {
-        conn.on("data", function (msg) { handle(conn, msg); });
-        conn.on("close", update);
-        conn.on("error", update);
-      });
-      peer.on("disconnected", function () { signal = "getrennt – verbinde neu …"; signalClass = "warn"; update(); try { peer.reconnect(); } catch (e) {} });
-      peer.on("error", function (err) {
-        if (err && err.type === "unavailable-id" && retries < 6) {
-          // Nach einem Neuladen ist die alte Registrierung manchmal noch kurz belegt.
-          retries++; signal = "warte auf Freigabe …"; signalClass = "warn"; update();
-          try { peer.destroy(); } catch (e) {}
-          setTimeout(start, 3000);
-        } else if (err && err.type === "unavailable-id") {
-          ssRemove("evalHostCode"); location.reload();
-        } else {
-          signal = "Fehler (" + (err && err.type || "unbekannt") + ")"; signalClass = "bad"; update();
-        }
-      });
+    function poll() {
+      if (!ready) return Promise.resolve();
+      return rpc("get_counts", { p_room: code }).then(function (data) {
+        if (!data || data.exists === false) { signal("Raum nicht gefunden", "bad"); return; }
+        signal("verbunden", "ok"); render(data);
+      }).catch(fail);
     }
 
     function keepAwake() {
       if (!("wakeLock" in navigator)) return;
       navigator.wakeLock.request("screen").then(function (l) { wakeLock = l; }).catch(function () {});
     }
-    document.addEventListener("visibilitychange", function () { if (document.visibilityState === "visible") keepAwake(); });
+    document.addEventListener("visibilitychange", function () { if (document.visibilityState === "visible") { keepAwake(); poll(); } });
     keepAwake();
 
-    start();
-    setInterval(update, 2000);
-    update();
+    rpc("open_room", { p_room: code, p_host_key: hostKey }).then(function () {
+      ready = true; poll(); setInterval(poll, 2000);
+    }).catch(function (err) {
+      if (/room_taken/.test(err.message || "")) { ssRemove("evalHostCode"); ssRemove("evalHostKey"); location.reload(); return; }
+      fail(err);
+    });
   }
 
   function makeQr(text) {
@@ -294,68 +254,31 @@
 
   // ---------- Teilnehmeransicht ----------
   function renderParticipant() {
-    var tokenKey = "evalToken-" + ROOM, ansKey = "evalAnswers-" + ROOM;
-    var token = ss(true, tokenKey);
-    if (!token) { token = randomString(24, "abcdefghijklmnopqrstuvwxyz0123456789"); ss(false, tokenKey, token); }
+    var tokenKey = "evalToken-" + ROOM, ansKey = "evalAnswers-" + ROOM, roundKey = "evalRound-" + ROOM;
+    var token = ssGet(tokenKey);
+    if (!token) { token = randomString(24, "abcdefghijklmnopqrstuvwxyz0123456789"); ssSet(tokenKey, token); }
     var answers = {};
-    try { answers = JSON.parse(ss(true, ansKey) || "{}") || {}; } catch (e) { answers = {}; }
-
-    var knownRound = ss(true, "evalRoundSeen-" + ROOM), synced = false;
-    var peer = null, conn = null, lastRx = 0, isOpen = true, status = "verbinde …", statusClass = "warn", retryTimer = null, pingTimer = null;
+    try { answers = JSON.parse(ssGet(ansKey) || "{}") || {}; } catch (e) { answers = {}; }
+    var sent = {}, knownRound = ssGet(roundKey), isOpen = true, status = "verbinde …", statusClass = "warn", flushing = false, again = false;
 
     app.innerHTML = "";
     var elStatus = h("span", { class: "pill warn", text: "verbinde …" });
     var elProgress = h("div", { class: "small" });
     var elMsg = h("div");
-    var elDiag = h("div", { class: "small", style: "margin-top:.4rem" });
     var cards = h("div");
     app.appendChild(h("div", { class: "row" }, [h("h1", { text: CONFIG.title }), elStatus]));
     app.appendChild(h("p", { class: "intro", text: CONFIG.intro }));
     app.appendChild(elProgress);
     app.appendChild(elMsg);
     app.appendChild(cards);
-    app.appendChild(elDiag);
-    var lastErr = "keiner", step = "start";
-    function diag(t) { step = t; showDiag(); }
-    function errText(err) { return String((err && (err.type || err.name)) || "?") + (err && err.message ? " – " + String(err.message).slice(0, 140) : ""); }
-    function showDiag() {
-      var pc = conn && conn.peerConnection;
-      elDiag.textContent = "Technische Details: " + step + (pc ? " | ICE " + pc.iceConnectionState + ", Signal " + pc.signalingState : "") + " | letzter Fehler: " + lastErr;
-    }
-    setInterval(showDiag, 1000);
-
-    // Selbsttest: kann dieses Gerät/dieser Browser überhaupt ein WebRTC-Angebot erzeugen?
-    var elTest = h("div", { class: "small", style: "margin-top:.4rem", text: "WebRTC-Selbsttest läuft …" });
-    app.appendChild(elTest);
-    (function () {
-      var ua = (navigator.userAgent || "").replace(/\s+/g, " ").slice(0, 150);
-      var res = { step: "start", cand: {}, err: "keiner", iceErr: 0, iceMsg: "" };
-      function out() {
-        elTest.textContent = "WebRTC-Selbsttest: " + res.step + " | Kandidaten " + JSON.stringify(res.cand) + " | Fehler: " + res.err +
-          (res.iceErr ? " | ICE-Serverfehler " + res.iceErr + " (" + res.iceMsg + ")" : "") + " | " + ua;
-      }
-      if (typeof RTCPeerConnection === "undefined") { res.step = "RTCPeerConnection fehlt"; out(); return; }
-      try {
-        var pc = new RTCPeerConnection({ iceServers: ICE });
-        pc.createDataChannel("t");
-        pc.onicecandidate = function (e) {
-          if (e.candidate) { var m = / typ (\w+)/.exec(e.candidate.candidate); if (m) res.cand[m[1]] = (res.cand[m[1]] || 0) + 1; }
-        };
-        pc.onicecandidateerror = function (e) { res.iceErr++; res.iceMsg = (e.errorCode || "") + " " + String(e.url || "").slice(0, 40); };
-        pc.createOffer().then(function (o) { res.step = "Offer erzeugt"; return pc.setLocalDescription(o); })
-          .then(function () { res.step = "Offer gesetzt"; })
-          .catch(function (err) { res.err = (err && err.name) + ": " + (err && err.message); });
-        setTimeout(function () { out(); try { pc.close(); } catch (e) {} }, 6000);
-      } catch (e) { res.step = "Konstruktor-Fehler"; res.err = e.name + ": " + e.message; out(); }
-    })();
 
     var btns = {};
     CONFIG.questions.forEach(function (q, i) {
       var group = h("div", { class: q.type === "scale" ? "scale" : "yn" });
       btns[q.id] = {};
-      var options = q.type === "scale" ? [1, 2, 3, 4, 5] : ["ja", "nein"];
+      var options = q.type === "scale" ? ["1", "2", "3", "4", "5"] : ["ja", "nein"];
       options.forEach(function (v) {
-        var b = h("button", { type: "button", text: q.type === "scale" ? String(v) : (v === "ja" ? "Ja" : "Nein"), onclick: function () { choose(q.id, v); } });
+        var b = h("button", { type: "button", text: q.type === "scale" ? v : (v === "ja" ? "Ja" : "Nein"), onclick: function () { choose(q.id, v); } });
         btns[q.id][v] = b; group.appendChild(b);
       });
       cards.appendChild(h("div", { class: "card" }, [
@@ -365,95 +288,74 @@
       ]));
     });
 
-    function choose(qid, v) {
-      if (!isOpen) return;
-      answers[qid] = v; ss(false, ansKey, JSON.stringify(answers));
-      send({ t: "answer", token: token, q: qid, v: v });
-      draw();
-    }
-    function send(msg) { if (conn && conn.open) { try { conn.send(msg); } catch (e) {} } }
-
     function draw() {
       elStatus.className = "pill " + statusClass; elStatus.textContent = status;
-      var done = 0;
+      var done = 0, unsent = 0;
       CONFIG.questions.forEach(function (q) {
         var sel = answers[q.id];
-        if (sel !== undefined) done++;
+        if (sel !== undefined) { done++; if (sent[q.id] !== sel) unsent++; }
         Object.keys(btns[q.id]).forEach(function (k) {
-          var on = String(sel) === String(k);
+          var on = sel === k;
           btns[q.id][k].className = on ? "sel" : "";
           btns[q.id][k].setAttribute("aria-pressed", on ? "true" : "false");
           btns[q.id][k].disabled = !isOpen;
         });
       });
-      elProgress.textContent = done + " von " + CONFIG.questions.length + " beantwortet";
+      elProgress.textContent = done + " von " + CONFIG.questions.length + " beantwortet" + (unsent ? " (Übertragung läuft …)" : "");
       elMsg.innerHTML = "";
-      if (!isOpen) elMsg.appendChild(h("div", { class: "closed", text: "Die Abstimmung ist beendet. Ihre Antworten wurden übermittelt." }));
-      else if (done === CONFIG.questions.length) elMsg.appendChild(h("div", { class: "done", text: "Vielen Dank! Sie können Ihre Antworten bis zum Ende der Abstimmung noch ändern." }));
+      if (!isOpen) elMsg.appendChild(h("div", { class: "closed", text: "Die Abstimmung ist beendet." }));
+      else if (done === CONFIG.questions.length && !unsent) elMsg.appendChild(h("div", { class: "done", text: "Vielen Dank! Ihre Antworten sind übermittelt. Sie können sie bis zum Ende der Abstimmung noch ändern." }));
     }
-
     function setStatus(text, cls) { status = text; statusClass = cls; draw(); }
 
-    function connect() {
-      clearTimeout(retryTimer);
-      if (peer) { try { peer.destroy(); } catch (e) {} }
-      setStatus("verbinde …", "warn");
-      peer = new Peer({ debug: 0, config: { iceServers: ICE } });
-      peer.on("open", function () {
-        conn = peer.connect(PREFIX + ROOM, { reliable: true });
-        var opened = false;
-        diag("Server erreicht (ID " + peer.id.slice(0, 6) + "), baue Verbindung auf …");
-        conn.on("open", function () {
-          opened = true; lastRx = Date.now(); diag("Datenkanal offen");
-          setStatus("verbunden", "ok");
-          synced = false;
-          send({ t: "hello", token: token });
-        });
-        conn.on("data", function (msg) {
-          lastRx = Date.now();
-          if (!msg) return;
-          if (msg.t === "state") {
-            isOpen = !!msg.open;
-            var r = String(msg.round);
-            if (knownRound !== null && knownRound !== r) { answers = {}; ssRemove(ansKey); }
-            knownRound = r; ss(false, "evalRoundSeen-" + ROOM, r);
-            if (!synced) { synced = true; send({ t: "sync", token: token, answers: answers }); }
-            draw();
-          }
-        });
-        conn.on("close", function () { if (opened) retry("Verbindung getrennt – versuche erneut …"); });
-        conn.on("error", function (err) { lastErr = "Verbindung: " + errText(err); showDiag(); retry("Verbindungsfehler – versuche erneut …"); });
-      });
-      peer.on("error", function (err) {
-        lastErr = "Server: " + errText(err); showDiag();
-        if (err && err.type === "peer-unavailable") retry("Raum nicht gefunden – bitte QR-Code erneut scannen", 4000);
-        else retry("Verbindung nicht möglich – versuche erneut …", 4000);
-      });
-      peer.on("disconnected", function () { try { peer.reconnect(); } catch (e) {} });
-    }
-    function retry(text, delay) {
-      setStatus(text, "bad");
-      clearTimeout(retryTimer);
-      retryTimer = setTimeout(connect, delay || 2000);
+    function choose(qid, v) {
+      if (!isOpen) return;
+      answers[qid] = v; ssSet(ansKey, JSON.stringify(answers));
+      draw(); flush();
     }
 
-    // Lebenszeichen: Host antwortet auf Ping; bleibt es still, wird neu verbunden.
-    pingTimer = setInterval(function () {
-      if (conn && conn.open) {
-        send({ t: "ping", token: token });
-        if (Date.now() - lastRx > 25000) { try { conn.close(); } catch (e) {} retry("Verbindung verloren – versuche erneut …"); }
-      }
-    }, 8000);
-    document.addEventListener("visibilitychange", function () {
-      if (document.visibilityState === "visible" && !(conn && conn.open)) connect();
-    });
+    // Noch nicht übertragene Antworten nacheinander senden
+    function flush() {
+      if (flushing) { again = true; return Promise.resolve(); }
+      flushing = true;
+      var pending = CONFIG.questions.filter(function (q) { return answers[q.id] !== undefined && sent[q.id] !== answers[q.id]; });
+      var chain = Promise.resolve();
+      pending.forEach(function (q) {
+        chain = chain.then(function () {
+          var v = answers[q.id];
+          return rpc("submit_answer", { p_room: ROOM, p_token: token, p_qid: q.id, p_value: v }).then(function (res) {
+            if (res && res.ok) { sent[q.id] = v; setStatus("verbunden", "ok"); }
+            else if (res && res.open === false) { isOpen = false; draw(); }
+            else if (res && res.exists === false) { setStatus("Raum nicht gefunden – bitte QR-Code erneut scannen", "bad"); }
+          });
+        });
+      });
+      return chain.catch(function () { setStatus("Verbindung fehlt – versuche erneut …", "bad"); }).then(function () {
+        flushing = false; draw();
+        if (again) { again = false; return flush(); }
+      });
+    }
 
+    function poll() {
+      return rpc("room_state", { p_room: ROOM }).then(function (st) {
+        if (!st || st.exists === false) { setStatus("Raum nicht gefunden – bitte QR-Code erneut scannen", "bad"); return; }
+        var r = String(st.round);
+        if (knownRound !== null && knownRound !== r) { answers = {}; sent = {}; ssRemove(ansKey); }
+        knownRound = r; ssSet(roundKey, r);
+        isOpen = !!st.open;
+        setStatus("verbunden", "ok");
+        return flush();
+      }).catch(function () { setStatus("Verbindung fehlt – versuche erneut …", "bad"); });
+    }
+
+    document.addEventListener("visibilitychange", function () { if (document.visibilityState === "visible") poll(); });
     draw();
-    connect();
+    poll(); setInterval(poll, 5000);
   }
 
   // ---------- Start ----------
-  if (ROOM) renderParticipant();
+  if (!configured) setupHint();
+  else if (ROOM) renderParticipant();
   else if (params.get("host")) renderHost();
   else renderLanding();
 })();
