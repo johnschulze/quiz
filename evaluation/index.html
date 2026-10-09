@@ -324,6 +324,31 @@
     }
     setInterval(showDiag, 1000);
 
+    // Selbsttest: kann dieses Gerät/dieser Browser überhaupt ein WebRTC-Angebot erzeugen?
+    var elTest = h("div", { class: "small", style: "margin-top:.4rem", text: "WebRTC-Selbsttest läuft …" });
+    app.appendChild(elTest);
+    (function () {
+      var ua = (navigator.userAgent || "").replace(/\s+/g, " ").slice(0, 150);
+      var res = { step: "start", cand: {}, err: "keiner", iceErr: 0, iceMsg: "" };
+      function out() {
+        elTest.textContent = "WebRTC-Selbsttest: " + res.step + " | Kandidaten " + JSON.stringify(res.cand) + " | Fehler: " + res.err +
+          (res.iceErr ? " | ICE-Serverfehler " + res.iceErr + " (" + res.iceMsg + ")" : "") + " | " + ua;
+      }
+      if (typeof RTCPeerConnection === "undefined") { res.step = "RTCPeerConnection fehlt"; out(); return; }
+      try {
+        var pc = new RTCPeerConnection({ iceServers: ICE });
+        pc.createDataChannel("t");
+        pc.onicecandidate = function (e) {
+          if (e.candidate) { var m = / typ (\w+)/.exec(e.candidate.candidate); if (m) res.cand[m[1]] = (res.cand[m[1]] || 0) + 1; }
+        };
+        pc.onicecandidateerror = function (e) { res.iceErr++; res.iceMsg = (e.errorCode || "") + " " + String(e.url || "").slice(0, 40); };
+        pc.createOffer().then(function (o) { res.step = "Offer erzeugt"; return pc.setLocalDescription(o); })
+          .then(function () { res.step = "Offer gesetzt"; })
+          .catch(function (err) { res.err = (err && err.name) + ": " + (err && err.message); });
+        setTimeout(function () { out(); try { pc.close(); } catch (e) {} }, 6000);
+      } catch (e) { res.step = "Konstruktor-Fehler"; res.err = e.name + ": " + e.message; out(); }
+    })();
+
     var btns = {};
     CONFIG.questions.forEach(function (q, i) {
       var group = h("div", { class: q.type === "scale" ? "scale" : "yn" });
