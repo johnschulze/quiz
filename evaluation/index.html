@@ -70,6 +70,12 @@
   var params = new URLSearchParams(location.search);
   var ROOM = (params.get("r") || "").toUpperCase().replace(/[^A-Z0-9]/g, "");
   var PREFIX = "jsz-eval-";
+  var ICE = [
+    { urls: "stun:stun.l.google.com:19302" },
+    { urls: "stun:global.stun.twilio.com:3478" },
+    { urls: ["turn:eu-0.turn.peerjs.com:3478", "turn:us-0.turn.peerjs.com:3478"], username: "peerjs", credential: "peerjsp" },
+    { urls: ["turn:openrelay.metered.ca:80", "turn:openrelay.metered.ca:443", "turns:openrelay.metered.ca:443?transport=tcp"], username: "openrelayproject", credential: "openrelayproject" }
+  ];
   var ALPHABET = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
 
   document.title = CONFIG.title;
@@ -242,7 +248,7 @@
     }
 
     function start() {
-      peer = new Peer(PREFIX + code, { debug: 0 });
+      peer = new Peer(PREFIX + code, { debug: 0, config: { iceServers: ICE } });
       peer.on("open", function () { retries = 0; signal = "bereit"; signalClass = "ok"; update(); });
       peer.on("connection", function (conn) {
         conn.on("data", function (msg) { handle(conn, msg); });
@@ -301,12 +307,15 @@
     var elStatus = h("span", { class: "pill warn", text: "verbinde …" });
     var elProgress = h("div", { class: "small" });
     var elMsg = h("div");
+    var elDiag = h("div", { class: "small", style: "margin-top:.4rem" });
     var cards = h("div");
     app.appendChild(h("div", { class: "row" }, [h("h1", { text: CONFIG.title }), elStatus]));
     app.appendChild(h("p", { class: "intro", text: CONFIG.intro }));
     app.appendChild(elProgress);
     app.appendChild(elMsg);
     app.appendChild(cards);
+    app.appendChild(elDiag);
+    function diag(t) { elDiag.textContent = "Technische Details: " + t; }
 
     var btns = {};
     CONFIG.questions.forEach(function (q, i) {
@@ -357,10 +366,16 @@
       clearTimeout(retryTimer);
       if (peer) { try { peer.destroy(); } catch (e) {} }
       setStatus("verbinde …", "warn");
-      peer = new Peer({ debug: 0 });
+      peer = new Peer({ debug: 0, config: { iceServers: ICE } });
       peer.on("open", function () {
         conn = peer.connect(PREFIX + ROOM, { reliable: true });
         var opened = false;
+        diag("Server erreicht, baue Verbindung auf …");
+        var watch = setInterval(function () {
+          var pc = conn && conn.peerConnection;
+          if (pc) diag("ICE " + pc.iceConnectionState + ", Signal " + pc.signalingState);
+          if (opened) clearInterval(watch);
+        }, 1000);
         conn.on("open", function () {
           opened = true; lastRx = Date.now();
           setStatus("verbunden", "ok");
@@ -380,9 +395,10 @@
           }
         });
         conn.on("close", function () { if (opened) retry("Verbindung getrennt – versuche erneut …"); });
-        conn.on("error", function () { retry("Verbindungsfehler – versuche erneut …"); });
+        conn.on("error", function (err) { diag("Fehler " + (err && err.type || err)); retry("Verbindungsfehler – versuche erneut …"); });
       });
       peer.on("error", function (err) {
+        diag("Server-Fehler " + (err && err.type || err));
         if (err && err.type === "peer-unavailable") retry("Raum nicht gefunden – bitte QR-Code erneut scannen", 4000);
         else retry("Verbindung nicht möglich – versuche erneut …", 4000);
       });
