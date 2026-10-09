@@ -315,7 +315,14 @@
     app.appendChild(elMsg);
     app.appendChild(cards);
     app.appendChild(elDiag);
-    function diag(t) { elDiag.textContent = "Technische Details: " + t; }
+    var lastErr = "keiner", step = "start";
+    function diag(t) { step = t; showDiag(); }
+    function errText(err) { return String((err && (err.type || err.name)) || "?") + (err && err.message ? " – " + String(err.message).slice(0, 140) : ""); }
+    function showDiag() {
+      var pc = conn && conn.peerConnection;
+      elDiag.textContent = "Technische Details: " + step + (pc ? " | ICE " + pc.iceConnectionState + ", Signal " + pc.signalingState : "") + " | letzter Fehler: " + lastErr;
+    }
+    setInterval(showDiag, 1000);
 
     var btns = {};
     CONFIG.questions.forEach(function (q, i) {
@@ -370,14 +377,9 @@
       peer.on("open", function () {
         conn = peer.connect(PREFIX + ROOM, { reliable: true });
         var opened = false;
-        diag("Server erreicht, baue Verbindung auf …");
-        var watch = setInterval(function () {
-          var pc = conn && conn.peerConnection;
-          if (pc) diag("ICE " + pc.iceConnectionState + ", Signal " + pc.signalingState);
-          if (opened) clearInterval(watch);
-        }, 1000);
+        diag("Server erreicht (ID " + peer.id.slice(0, 6) + "), baue Verbindung auf …");
         conn.on("open", function () {
-          opened = true; lastRx = Date.now();
+          opened = true; lastRx = Date.now(); diag("Datenkanal offen");
           setStatus("verbunden", "ok");
           synced = false;
           send({ t: "hello", token: token });
@@ -395,10 +397,10 @@
           }
         });
         conn.on("close", function () { if (opened) retry("Verbindung getrennt – versuche erneut …"); });
-        conn.on("error", function (err) { diag("Fehler " + (err && err.type || err)); retry("Verbindungsfehler – versuche erneut …"); });
+        conn.on("error", function (err) { lastErr = "Verbindung: " + errText(err); showDiag(); retry("Verbindungsfehler – versuche erneut …"); });
       });
       peer.on("error", function (err) {
-        diag("Server-Fehler " + (err && err.type || err));
+        lastErr = "Server: " + errText(err); showDiag();
         if (err && err.type === "peer-unavailable") retry("Raum nicht gefunden – bitte QR-Code erneut scannen", 4000);
         else retry("Verbindung nicht möglich – versuche erneut …", 4000);
       });
