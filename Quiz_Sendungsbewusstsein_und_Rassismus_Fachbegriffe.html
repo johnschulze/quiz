@@ -44,26 +44,38 @@ body { font-family: system-ui, sans-serif; background: #ffffff; color: #1a1a1a; 
     <span>Wrong: <b id="cnt-w">0</b></span>
     <span>Left: <b id="cnt-l">0</b></span>
   </div>
+  <div class="tabs"><button class="tab-btn active" onclick="switchTab(0)">Vorderseite</button><button class="tab-btn" onclick="switchTab(1)">Rückseite</button></div>
   <div class="col-header"><span>Definition</span><span></span><span>Fachbegriff</span></div>
   <div class="tab-panel"><div class="quiz-outer" id="rows-0"></div></div>
+  <div class="tab-panel" style="display:none"><div class="quiz-outer" id="rows-1"></div></div>
   <div class="controls"><button onclick="resetAll()">↺ Reset</button></div>
 </div>
 <script>
-// [Word, Definition] – Definition fix links, leerer Slot Mitte, Wort als Chip rechts
+// [Begriff, Definition] (1–10 Vorderseite, 11–20 Rückseite) – Definition fix links, leerer Slot Mitte, Wort als Chip rechts
 const PAIRS = [
-  ["Glaube, dass man die eigene Kultur zu anderen Völkern bringen muss", "Sendungsbewusstsein"],
-  ["Menschen werden wegen ihrer Hautfarbe oder Herkunft für weniger wert gehalten", "Rassismus"],
-  ["Falsche Lehre, dass manche Menschen mehr wert sind als andere", "Rasselehre"],
-  ["Menschen, die ihr Land immer größer und mächtiger machen wollen", "Imperialisten"],
-  ["Andere Menschen nur für den eigenen Vorteil nutzen, ohne Rücksicht", "Ausbeutung"],
-  ["Altes, abwertendes Wort für Menschen, die schon lange in einem Land leben", "Eingeborene"],
-  ["Abwertendes Wort für Menschen, die nicht christlich sind", "Heiden"],
-  ["Hoher Kulturzustand, den sich die Kolonialmächte selbst zuschrieben", "Zivilisation"],
-  ["Vorstellung, dass Gott die Welt genau so geordnet hat, wie sie ist", "göttliche Weltordnung"],
-  ["Jemanden schlagen, um ihn angeblich zu erziehen", "Züchtigung"]
+  ["Sendungsbewusstsein", "Glaube, dass man die eigene Kultur zu anderen Völkern bringen muss"],
+  ["Rassismus", "Menschen werden wegen ihrer Hautfarbe oder Herkunft für weniger wert gehalten"],
+  ["Rasselehre", "Falsche Lehre, dass manche Menschen mehr wert sind als andere"],
+  ["Imperialisten", "Menschen, die ihr Land immer größer und mächtiger machen wollen"],
+  ["Ausbeutung", "Andere Menschen nur für den eigenen Vorteil nutzen, ohne Rücksicht"],
+  ["Eingeborene", "Altes, abwertendes Wort für Menschen, die schon lange in einem Land leben"],
+  ["Heiden", "Abwertendes Wort für Menschen, die nicht christlich sind"],
+  ["Zivilisation", "Hoher Kulturzustand, den sich die Kolonialmächte selbst zuschrieben"],
+  ["göttliche Weltordnung", "Vorstellung, dass Gott die Welt genau so geordnet hat, wie sie ist"],
+  ["Züchtigung", "Jemanden schlagen, um ihn angeblich zu erziehen"],
+  ["Prügelstrafe", "Strafe, bei der man geschlagen wird"],
+  ["Vergehen", "Eine Handlung, die gegen die Regeln verstößt"],
+  ["verhängen", "Eine Strafe offiziell festlegen"],
+  ["Kolonialherren", "Die europäischen Herrscher über die besetzten Gebiete"],
+  ["Menschenbild", "Die Vorstellung davon, wie Leute sind und was sie wert sind"],
+  ["Begründung", "Die Erklärung, warum man etwas tut"],
+  ["Motiv", "Der Grund, warum jemand etwas will"],
+  ["inwiefern", "In welcher Hinsicht"],
+  ["bewerten", "Sagen, wie gut oder schlecht etwas ist"],
+  ["Aberglaube", "Glaube an Dinge, die es nicht gibt"]
 ];
-const SPLIT = false;
-const LEFT = 0, CHIP = 1;
+const SPLIT = true;
+const LEFT = 1, CHIP = 0;
 const GROUPS = SPLIT ? [PAIRS.slice(0, 10), PAIRS.slice(10)] : [PAIRS];
 
 let correct = 0, wrong = 0, selectedChip = null, activeTab = 0;

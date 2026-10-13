@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Fachbegriffe – Kolonialismus</title>
+<title>Fachbegriffe – Die Welt wird europäisch</title>
 <style>
 * { box-sizing: border-box; margin: 0; padding: 0; }
 html, body { height: 100%; overflow: hidden; }
@@ -38,32 +38,44 @@ body { font-family: system-ui, sans-serif; background: #ffffff; color: #1a1a1a; 
 </head>
 <body>
 <div id="scaleWrapper">
-  <div class="quiz-header"><h1>Fachbegriffe – Kolonialismus</h1></div>
+  <div class="quiz-header"><h1>Fachbegriffe – Die Welt wird europäisch</h1></div>
   <div class="score-bar">
     <span>Correct: <b id="cnt-c">0</b></span>
     <span>Wrong: <b id="cnt-w">0</b></span>
     <span>Left: <b id="cnt-l">0</b></span>
   </div>
+  <div class="tabs"><button class="tab-btn active" onclick="switchTab(0)">Vorderseite</button><button class="tab-btn" onclick="switchTab(1)">Rückseite</button></div>
   <div class="col-header"><span>Definition</span><span></span><span>Fachbegriff</span></div>
   <div class="tab-panel"><div class="quiz-outer" id="rows-0"></div></div>
+  <div class="tab-panel" style="display:none"><div class="quiz-outer" id="rows-1"></div></div>
   <div class="controls"><button onclick="resetAll()">↺ Reset</button></div>
 </div>
 <script>
-// [Word, Definition] – Definition fix links, leerer Slot Mitte, Wort als Chip rechts
+// [Begriff, Definition] (1–10 Vorderseite, 11–20 Rückseite) – Definition fix links, leerer Slot Mitte, Wort als Chip rechts
 const PAIRS = [
-  ["Übertritt zu einem anderen Glauben, meist dem Christentum", "Bekehrung"],
-  ["Person bzw. Tätigkeit zur Verbreitung des christlichen Glaubens", "Missionar/Mission"],
-  ["ursprüngliche Bevölkerung eines Gebiets vor den Kolonisatoren", "indigene Bevölkerung"],
-  ["Grenzlinie, die Einflussgebiete zwischen Mächten aufteilt", "Demarkationslinie"],
-  ["System, in dem Zeichen für Dinge oder Ideen stehen", "Bildschrift"],
-  ["Gegenstände für religiöse Rituale der einheimischen Bevölkerung", "Kultgegenstände"],
-  ["System, das Menschen als Eigentum hält und zur Arbeit zwingt", "Sklaverei"],
-  ["Person, die sehr viel Land besitzt und dieses bewirtschaften lässt", "Großgrundbesitzer"],
-  ["großer Betrieb, der mit Zwangsarbeit Rohstoffe anbaut", "Plantage"],
-  ["Auflehnung der indigenen Bevölkerung gegen die Kolonialherrschaft", "Widerstand"]
+  ["Bekehrung", "Übertritt zu einem anderen Glauben, meist dem Christentum"],
+  ["Missionar/Mission", "Person bzw. Tätigkeit zur Verbreitung des christlichen Glaubens"],
+  ["indigene Bevölkerung", "ursprüngliche Bevölkerung eines Gebiets vor den Kolonisatoren"],
+  ["Demarkationslinie", "Grenzlinie, die Einflussgebiete zwischen Mächten aufteilt"],
+  ["Bildschrift", "System, in dem Zeichen für Dinge oder Ideen stehen"],
+  ["Kultgegenstände", "Gegenstände für religiöse Rituale der einheimischen Bevölkerung"],
+  ["Sklaverei", "System, das Menschen als Eigentum hält und zur Arbeit zwingt"],
+  ["Großgrundbesitzer", "Person, die sehr viel Land besitzt und dieses bewirtschaften lässt"],
+  ["Plantage", "großer Betrieb, der mit Zwangsarbeit Rohstoffe anbaut"],
+  ["Widerstand", "Auflehnung der indigenen Bevölkerung gegen die Kolonialherrschaft"],
+  ["Nobelkomitee", "Gruppe, die den Friedensnobelpreis vergibt"],
+  ["Friedensnobelpreis", "Berühmte Auszeichnung für Einsatz gegen Krieg und Gewalt"],
+  ["Verleihung", "Die feierliche Übergabe eines Preises"],
+  ["Militärdiktatur", "Eine Regierung aus Soldaten, ohne freie Wahlen"],
+  ["Streik", "Arbeiter legen aus Protest die Arbeit nieder"],
+  ["Arbeitsbedingungen", "Die Umstände im Job: Lohn, Zeit, Sicherheit"],
+  ["kolonialer Stützpunkt", "Ort im Ausland, den ein Staat besetzt hält"],
+  ["schildern", "Etwas genau und anschaulich beschreiben"],
+  ["kärglich", "Sehr wenig und schlecht"],
+  ["Maßnahmen", "Schritte, mit denen man ein Ziel erreichen will"]
 ];
-const SPLIT = false;
-const LEFT = 0, CHIP = 1;
+const SPLIT = true;
+const LEFT = 1, CHIP = 0;
 const GROUPS = SPLIT ? [PAIRS.slice(0, 10), PAIRS.slice(10)] : [PAIRS];
 
 let correct = 0, wrong = 0, selectedChip = null, activeTab = 0;

@@ -44,26 +44,38 @@ body { font-family: system-ui, sans-serif; background: #ffffff; color: #1a1a1a; 
     <span>Wrong: <b id="cnt-w">0</b></span>
     <span>Left: <b id="cnt-l">0</b></span>
   </div>
+  <div class="tabs"><button class="tab-btn active" onclick="switchTab(0)">Vorderseite</button><button class="tab-btn" onclick="switchTab(1)">Rückseite</button></div>
   <div class="col-header"><span>Definition</span><span></span><span>Fachbegriff</span></div>
   <div class="tab-panel"><div class="quiz-outer" id="rows-0"></div></div>
+  <div class="tab-panel" style="display:none"><div class="quiz-outer" id="rows-1"></div></div>
   <div class="controls"><button onclick="resetAll()">↺ Reset</button></div>
 </div>
 <script>
-// [Word, Definition] – Definition fix links, leerer Slot Mitte, Wort als Chip rechts
+// [Begriff, Definition] (1–10 Vorderseite, 11–20 Rückseite) – Definition fix links, leerer Slot Mitte, Wort als Chip rechts
 const PAIRS = [
-  ["Zwei Länder bauen um die Wette immer mehr Waffen", "Rüstungswettlauf"],
-  ["Zwei große Gruppen von Ländern stehen gegeneinander", "Machtblöcke"],
-  ["Ein Land will auf der ganzen Welt mitbestimmen", "Weltpolitik"],
-  ["Ein Land mit Macht und Besitz in vielen Teilen der Welt", "Weltreich"],
-  ["Ein Land sucht sich Partner, die ihm im Notfall helfen", "Bündnispolitik"],
-  ["Länder, in denen ein anderes Land viel bestimmen will", "Einflussgebiete"],
-  ["Die Politik eines Landes gegenüber anderen Ländern", "Außenpolitik"],
-  ["Streit, der immer größer und gefährlicher wird", "Spannungen"],
-  ["Ob zwei Länder gut oder schlecht miteinander auskommen", "Verhältnis"],
-  ["Die stärksten und mächtigsten Länder", "Großmächte"]
+  ["Rüstungswettlauf", "Zwei Länder bauen um die Wette immer mehr Waffen"],
+  ["Machtblöcke", "Zwei große Gruppen von Ländern stehen gegeneinander"],
+  ["Weltpolitik", "Ein Land will auf der ganzen Welt mitbestimmen"],
+  ["Weltreich", "Ein Land mit Macht und Besitz in vielen Teilen der Welt"],
+  ["Bündnispolitik", "Ein Land sucht sich Partner, die ihm im Notfall helfen"],
+  ["Einflussgebiete", "Länder, in denen ein anderes Land viel bestimmen will"],
+  ["Außenpolitik", "Die Politik eines Landes gegenüber anderen Ländern"],
+  ["Spannungen", "Streit, der immer größer und gefährlicher wird"],
+  ["Verhältnis", "Ob zwei Länder gut oder schlecht miteinander auskommen"],
+  ["Großmächte", "Die stärksten und mächtigsten Länder"],
+  ["Gutachten", "Schriftliche Einschätzung eines Fachmanns"],
+  ["Flottenpolitik", "Politik, die Kriegsschiffe bauen lässt"],
+  ["Rückgrat", "Hier: die wichtigste Stütze für etwas"],
+  ["Weltmachtstellung", "Der Platz unter den mächtigsten Staaten der Welt"],
+  ["Notwendigkeit", "Etwas, das man unbedingt braucht"],
+  ["Luxus", "Etwas, das man nicht unbedingt braucht"],
+  ["Bündnislage", "Wer mit wem verbündet ist"],
+  ["interpretieren", "Ein Bild oder einen Text deuten"],
+  ["Marineminister", "Politiker, der für die Kriegsflotte zuständig ist"],
+  ["Majestät", "Anrede für einen Kaiser oder König"]
 ];
-const SPLIT = false;
-const LEFT = 0, CHIP = 1;
+const SPLIT = true;
+const LEFT = 1, CHIP = 0;
 const GROUPS = SPLIT ? [PAIRS.slice(0, 10), PAIRS.slice(10)] : [PAIRS];
 
 let correct = 0, wrong = 0, selectedChip = null, activeTab = 0;
