@@ -6,8 +6,8 @@
 <title>Fachbegriffe – Parteien in der Demokratie</title>
 <style>
 * { box-sizing: border-box; margin: 0; padding: 0; }
-html, body { height: 100%; overflow: hidden; }
-body { font-family: system-ui, sans-serif; background: #ffffff; color: #1a1a1a; display: flex; justify-content: center; align-items: flex-start; }
+html { overflow-x: hidden; overflow-y: auto; }
+body { min-height: 100%; font-family: system-ui, sans-serif; background: #ffffff; color: #1a1a1a; display: flex; justify-content: center; align-items: flex-start; }
 #scaleWrapper { padding: 0.3rem 0.5rem 0.4rem; transform-origin: top center; opacity: 0; }
 .quiz-header { text-align: center; margin-bottom: 0.2rem; }
 .quiz-header h1 { font-size: 1.2rem; font-weight: 600; }
@@ -171,13 +171,25 @@ function sizeColumns() {
   wr.style.transform = savedTransform;
 }
 
+function viewH() {
+  const h = [window.innerHeight, document.documentElement.clientHeight];
+  if (window.visualViewport) h.push(window.visualViewport.height);
+  return Math.min(...h.filter(v => v > 0)) - 2;
+}
+function viewW() {
+  const w = [window.innerWidth, document.documentElement.clientWidth];
+  if (window.visualViewport) w.push(window.visualViewport.width);
+  return Math.min(...w.filter(v => v > 0));
+}
 function fitToScreen() {
   const wrapper = document.getElementById('scaleWrapper');
   wrapper.style.transform = 'none';
+  wrapper.style.marginBottom = '0';
   requestAnimationFrame(() => {
     const cw = wrapper.scrollWidth, ch = wrapper.scrollHeight;
-    const scale = Math.min(3, window.innerWidth / cw, window.innerHeight / ch);
+    const scale = Math.min(3, viewW() / cw, viewH() / ch);
     wrapper.style.transform = `scale(${scale})`;
+    wrapper.style.marginBottom = (ch * scale - ch) + 'px';
     wrapper.style.opacity = '1';
   });
 }
@@ -204,7 +216,9 @@ function resetAll() {
 buildAll();
 if (SPLIT) switchTab(0);
 window.addEventListener('load', () => setTimeout(() => { sizeColumns(); fitToScreen(); }, 50));
-window.addEventListener('resize', () => setTimeout(fitToScreen, 50));
+window.addEventListener('resize', () => { setTimeout(fitToScreen, 50); setTimeout(fitToScreen, 400); });
+window.addEventListener('orientationchange', () => { setTimeout(fitToScreen, 100); setTimeout(fitToScreen, 500); setTimeout(fitToScreen, 1000); });
+if (window.visualViewport) window.visualViewport.addEventListener('resize', () => setTimeout(fitToScreen, 50));
 document.addEventListener('click', e => {
   if (!e.target.closest('.chip') && !e.target.closest('.drop-zone')) deselectAll();
 });
