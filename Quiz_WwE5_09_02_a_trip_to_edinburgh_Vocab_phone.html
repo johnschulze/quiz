@@ -6,8 +6,8 @@
 <title>Vocabulary – a trip to Edinburgh</title>
 <style>
 * { box-sizing: border-box; margin: 0; padding: 0; }
-html { overflow-x: hidden; overflow-y: auto; }
-body { min-height: 100%; font-family: system-ui, sans-serif; background: #ffffff; color: #1a1a1a; display: flex; justify-content: center; align-items: flex-start; }
+html, body { height: 100%; overflow: hidden; }
+body { font-family: system-ui, sans-serif; background: #ffffff; color: #1a1a1a; display: flex; justify-content: center; align-items: flex-start; }
 #scaleWrapper { padding: 0.3rem 0.5rem 0.4rem; transform-origin: top center; opacity: 0; }
 .quiz-header { text-align: center; margin-bottom: 0.2rem; }
 .quiz-header h1 { font-size: 1.2rem; font-weight: 600; }
@@ -58,23 +58,13 @@ const PAIRS = [
   ["entertaining", "funny and interesting to watch or listen to (unterhaltsam)"],
   ["steep", "going up or down very quickly (steil)"],
   ["view", "what you can see from a place (Aussicht)"],
-  ["spare bedroom", "a room for guests in your home (Gästezimmer)"],
-  ["to suggest", "to say what sb. (somebody) could do (vorschlagen)"],
   ["attraction", "a place that many tourists want to see (Sehenswürdigkeit)"],
-  ["to expect", "to think that sth. (something) will happen (erwarten)"],
-  ["sight", "an interesting place that tourists visit (Sehenswürdigkeit)"],
-  ["to unpack", "to take your things out of a bag or a case (auspacken)"],
   ["review", "a text in which sb. says what they think of a place or a product (Bewertung)"],
   ["amazing", "very surprising and very good (erstaunlich, toll)"],
-  ["to show sb. around", "to take a visitor to see the interesting places (jdn. herumführen)"],
-  ["to rest", "to relax after you have done sth. tiring (sich ausruhen)"],
-  ["to mind", "to be unhappy about sth. (etwas dagegen haben)"],
-  ["location", "the place where sth. is (Lage)"],
   ["lovely", "very nice and pleasant (wunderbar)"],
-  ["to stay overnight", "to sleep somewhere for a night (übernachten)"],
-  ["guest", "a person who comes to your home for a visit (Gast)"]
+  ["location", "the place where sth. is (Lage)"]
 ];
-const SPLIT = true;
+const SPLIT = false;
 const LEFT = 1, CHIP = 0;
 const GROUPS = SPLIT ? [PAIRS.slice(0, 10), PAIRS.slice(10)] : [PAIRS];
 
@@ -183,25 +173,13 @@ function sizeColumns() {
   wr.style.transform = savedTransform;
 }
 
-function viewH() {
-  const h = [window.innerHeight, document.documentElement.clientHeight];
-  if (window.visualViewport) h.push(window.visualViewport.height);
-  return Math.min(...h.filter(v => v > 0)) - 2;
-}
-function viewW() {
-  const w = [window.innerWidth, document.documentElement.clientWidth];
-  if (window.visualViewport) w.push(window.visualViewport.width);
-  return Math.min(...w.filter(v => v > 0));
-}
 function fitToScreen() {
   const wrapper = document.getElementById('scaleWrapper');
   wrapper.style.transform = 'none';
-  wrapper.style.marginBottom = '0';
   requestAnimationFrame(() => {
     const cw = wrapper.scrollWidth, ch = wrapper.scrollHeight;
-    const scale = Math.min(3, viewW() / cw, viewH() / ch);
+    const scale = Math.min(3, window.innerWidth / cw, window.innerHeight / ch);
     wrapper.style.transform = `scale(${scale})`;
-    wrapper.style.marginBottom = (ch * scale - ch) + 'px';
     wrapper.style.opacity = '1';
   });
 }
@@ -228,9 +206,7 @@ function resetAll() {
 buildAll();
 if (SPLIT) switchTab(0);
 window.addEventListener('load', () => setTimeout(() => { sizeColumns(); fitToScreen(); }, 50));
-window.addEventListener('resize', () => { setTimeout(fitToScreen, 50); setTimeout(fitToScreen, 400); });
-window.addEventListener('orientationchange', () => { setTimeout(fitToScreen, 100); setTimeout(fitToScreen, 500); setTimeout(fitToScreen, 1000); });
-if (window.visualViewport) window.visualViewport.addEventListener('resize', () => setTimeout(fitToScreen, 50));
+window.addEventListener('resize', () => setTimeout(fitToScreen, 50));
 document.addEventListener('click', e => {
   if (!e.target.closest('.chip') && !e.target.closest('.drop-zone')) deselectAll();
 });

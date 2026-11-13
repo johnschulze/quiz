@@ -6,8 +6,8 @@
 <title>Vocabulary – Thanksgiving in the USA</title>
 <style>
 * { box-sizing: border-box; margin: 0; padding: 0; }
-html { overflow-x: hidden; overflow-y: auto; }
-body { min-height: 100%; font-family: system-ui, sans-serif; background: #ffffff; color: #1a1a1a; display: flex; justify-content: center; align-items: flex-start; }
+html, body { height: 100%; overflow: hidden; }
+body { font-family: system-ui, sans-serif; background: #ffffff; color: #1a1a1a; display: flex; justify-content: center; align-items: flex-start; }
 #scaleWrapper { padding: 0.3rem 0.5rem 0.4rem; transform-origin: top center; opacity: 0; }
 .quiz-header { text-align: center; margin-bottom: 0.2rem; }
 .quiz-header h1 { font-size: 1.2rem; font-weight: 600; }
@@ -57,24 +57,14 @@ const PAIRS = [
   ["corn", "a tall plant with yellow seeds that people eat (Mais)"],
   ["pumpkin", "a big round orange vegetable that you can cut and cook (Kürbis)"],
   ["family reunion", "a party where many relatives meet again (Familientreffen)"],
-  ["settler", "a person who goes to live in a new country (Siedler)"],
-  ["Native American", "a member of the first peoples who lived in the USA before Europeans arrived (Ureinwohner Amerikas)"],
-  ["to hug", "to put your arms round sb. (somebody) to show love (umarmen)"],
-  ["to introduce oneself", "to tell sb. your name when you meet for the first time (sich vorstellen)"],
-  ["lonely", "sad because you have no friends near you (einsam)"],
-  ["to bark", "to make the loud sound that a dog makes (bellen)"],
   ["delicious", "tasting very good (lecker)"],
   ["exchange student", "a young person who lives and studies in another country for some time (Austauschschüler)"],
-  ["invitation", "a card that asks sb. to come to a party (Einladung)"],
   ["to get ready", "to prepare yourself or sth. for what is going to happen (sich fertig machen)"],
   ["to give thanks", "to say that you are grateful (danken)"],
-  ["daughter-in-law", "the wife of your son (Schwiegertochter)"],
   ["sweet potato", "an orange root vegetable that tastes like sugar (Süßkartoffel)"],
-  ["to be about to", "to be very near to doing sth. (kurz davor sein)"],
-  ["oven", "a closed box in the kitchen where you bake or roast food (Backofen)"],
   ["turkey", "a large bird that people eat on special days (Truthahn)"]
 ];
-const SPLIT = true;
+const SPLIT = false;
 const LEFT = 1, CHIP = 0;
 const GROUPS = SPLIT ? [PAIRS.slice(0, 10), PAIRS.slice(10)] : [PAIRS];
 
@@ -183,25 +173,13 @@ function sizeColumns() {
   wr.style.transform = savedTransform;
 }
 
-function viewH() {
-  const h = [window.innerHeight, document.documentElement.clientHeight];
-  if (window.visualViewport) h.push(window.visualViewport.height);
-  return Math.min(...h.filter(v => v > 0)) - 2;
-}
-function viewW() {
-  const w = [window.innerWidth, document.documentElement.clientWidth];
-  if (window.visualViewport) w.push(window.visualViewport.width);
-  return Math.min(...w.filter(v => v > 0));
-}
 function fitToScreen() {
   const wrapper = document.getElementById('scaleWrapper');
   wrapper.style.transform = 'none';
-  wrapper.style.marginBottom = '0';
   requestAnimationFrame(() => {
     const cw = wrapper.scrollWidth, ch = wrapper.scrollHeight;
-    const scale = Math.min(3, viewW() / cw, viewH() / ch);
+    const scale = Math.min(3, window.innerWidth / cw, window.innerHeight / ch);
     wrapper.style.transform = `scale(${scale})`;
-    wrapper.style.marginBottom = (ch * scale - ch) + 'px';
     wrapper.style.opacity = '1';
   });
 }
@@ -228,9 +206,7 @@ function resetAll() {
 buildAll();
 if (SPLIT) switchTab(0);
 window.addEventListener('load', () => setTimeout(() => { sizeColumns(); fitToScreen(); }, 50));
-window.addEventListener('resize', () => { setTimeout(fitToScreen, 50); setTimeout(fitToScreen, 400); });
-window.addEventListener('orientationchange', () => { setTimeout(fitToScreen, 100); setTimeout(fitToScreen, 500); setTimeout(fitToScreen, 1000); });
-if (window.visualViewport) window.visualViewport.addEventListener('resize', () => setTimeout(fitToScreen, 50));
+window.addEventListener('resize', () => setTimeout(fitToScreen, 50));
 document.addEventListener('click', e => {
   if (!e.target.closest('.chip') && !e.target.closest('.drop-zone')) deselectAll();
 });

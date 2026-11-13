@@ -6,8 +6,8 @@
 <title>Vocabulary – an exciting technological development</title>
 <style>
 * { box-sizing: border-box; margin: 0; padding: 0; }
-html { overflow-x: hidden; overflow-y: auto; }
-body { min-height: 100%; font-family: system-ui, sans-serif; background: #ffffff; color: #1a1a1a; display: flex; justify-content: center; align-items: flex-start; }
+html, body { height: 100%; overflow: hidden; }
+body { font-family: system-ui, sans-serif; background: #ffffff; color: #1a1a1a; display: flex; justify-content: center; align-items: flex-start; }
 #scaleWrapper { padding: 0.3rem 0.5rem 0.4rem; transform-origin: top center; opacity: 0; }
 .quiz-header { text-align: center; margin-bottom: 0.2rem; }
 .quiz-header h1 { font-size: 1.2rem; font-weight: 600; }
@@ -60,21 +60,11 @@ const PAIRS = [
   ["willing", "ready to do sth. if sb. asks you (bereit)"],
   ["to get paid", "to receive money for your work (bezahlt werden)"],
   ["available", "free and ready to be used or to help (verfügbar)"],
-  ["to register", "to put your name and details on a list or website (sich anmelden)"],
-  ["to charge", "to put electricity into a battery (aufladen)"],
-  ["connection", "a link between your device and the internet (Verbindung)"],
-  ["to share", "to give your information or things to other people (teilen)"],
-  ["personal information", "facts about you, like your name and address (persönliche Daten)"],
   ["volunteer", "a person who works without being paid (Freiwilliger)"],
-  ["to report sb.", "to tell the police or an official about sb. who did sth. wrong (jdn. melden)"],
-  ["to recommend", "to tell sb. that sth. is good (empfehlen)"],
   ["heading", "a title at the top of a text or picture (Überschrift)"],
-  ["to overload", "to put too much into sth. (überladen)"],
-  ["to sign off", "to leave an online service after you have used it (sich abmelden)"],
-  ["exciting", "making you feel very interested and happy (aufregend, spannend)"],
-  ["to be interested in sth.", "to want to know more about sth. (sich für etwas interessieren)"]
+  ["exciting", "making you feel very interested and happy (aufregend, spannend)"]
 ];
-const SPLIT = true;
+const SPLIT = false;
 const LEFT = 1, CHIP = 0;
 const GROUPS = SPLIT ? [PAIRS.slice(0, 10), PAIRS.slice(10)] : [PAIRS];
 
@@ -183,25 +173,13 @@ function sizeColumns() {
   wr.style.transform = savedTransform;
 }
 
-function viewH() {
-  const h = [window.innerHeight, document.documentElement.clientHeight];
-  if (window.visualViewport) h.push(window.visualViewport.height);
-  return Math.min(...h.filter(v => v > 0)) - 2;
-}
-function viewW() {
-  const w = [window.innerWidth, document.documentElement.clientWidth];
-  if (window.visualViewport) w.push(window.visualViewport.width);
-  return Math.min(...w.filter(v => v > 0));
-}
 function fitToScreen() {
   const wrapper = document.getElementById('scaleWrapper');
   wrapper.style.transform = 'none';
-  wrapper.style.marginBottom = '0';
   requestAnimationFrame(() => {
     const cw = wrapper.scrollWidth, ch = wrapper.scrollHeight;
-    const scale = Math.min(3, viewW() / cw, viewH() / ch);
+    const scale = Math.min(3, window.innerWidth / cw, window.innerHeight / ch);
     wrapper.style.transform = `scale(${scale})`;
-    wrapper.style.marginBottom = (ch * scale - ch) + 'px';
     wrapper.style.opacity = '1';
   });
 }
@@ -228,9 +206,7 @@ function resetAll() {
 buildAll();
 if (SPLIT) switchTab(0);
 window.addEventListener('load', () => setTimeout(() => { sizeColumns(); fitToScreen(); }, 50));
-window.addEventListener('resize', () => { setTimeout(fitToScreen, 50); setTimeout(fitToScreen, 400); });
-window.addEventListener('orientationchange', () => { setTimeout(fitToScreen, 100); setTimeout(fitToScreen, 500); setTimeout(fitToScreen, 1000); });
-if (window.visualViewport) window.visualViewport.addEventListener('resize', () => setTimeout(fitToScreen, 50));
+window.addEventListener('resize', () => setTimeout(fitToScreen, 50));
 document.addEventListener('click', e => {
   if (!e.target.closest('.chip') && !e.target.closest('.drop-zone')) deselectAll();
 });

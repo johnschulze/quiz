@@ -6,8 +6,8 @@
 <title>Vocabulary – the dangers of mobile phone gazing</title>
 <style>
 * { box-sizing: border-box; margin: 0; padding: 0; }
-html { overflow-x: hidden; overflow-y: auto; }
-body { min-height: 100%; font-family: system-ui, sans-serif; background: #ffffff; color: #1a1a1a; display: flex; justify-content: center; align-items: flex-start; }
+html, body { height: 100%; overflow: hidden; }
+body { font-family: system-ui, sans-serif; background: #ffffff; color: #1a1a1a; display: flex; justify-content: center; align-items: flex-start; }
 #scaleWrapper { padding: 0.3rem 0.5rem 0.4rem; transform-origin: top center; opacity: 0; }
 .quiz-header { text-align: center; margin-bottom: 0.2rem; }
 .quiz-header h1 { font-size: 1.2rem; font-weight: 600; }
@@ -60,21 +60,11 @@ const PAIRS = [
   ["illegal", "against the law (illegal, verboten)"],
   ["to warn sb. about sth.", "to tell sb. that there is danger (jdn. vor etw. warnen)"],
   ["to gaze at sth.", "to look at sth. for a long time (anstarren)"],
-  ["graph", "a picture that shows how numbers change (Diagramm)"],
-  ["axis", "one of the two lines at the side and bottom of a graph (Achse)"],
-  ["pattern", "a way in which sth. is repeated or changes (Muster)"],
-  ["conclusion", "what you decide after you have thought about the facts (Schlussfolgerung)"],
-  ["to rise", "to go up (steigen)"],
-  ["solution", "an answer to a problem (Lösung)"],
-  ["to download", "to copy a file or app from the internet to your device (herunterladen)"],
   ["to look up", "to raise your eyes from what you are doing (aufschauen)"],
-  ["to concentrate on sth.", "to give all your attention to one thing (sich auf etw. konzentrieren)"],
-  ["distracted", "not able to pay attention because sth. else takes your mind (abgelenkt)"],
   ["to cross", "to go from one side of a street to the other (überqueren)"],
-  ["corner", "the place where two sides or two streets meet (Ecke)"],
   ["to cause", "to make sth. bad happen (verursachen)"]
 ];
-const SPLIT = true;
+const SPLIT = false;
 const LEFT = 1, CHIP = 0;
 const GROUPS = SPLIT ? [PAIRS.slice(0, 10), PAIRS.slice(10)] : [PAIRS];
 
@@ -183,25 +173,13 @@ function sizeColumns() {
   wr.style.transform = savedTransform;
 }
 
-function viewH() {
-  const h = [window.innerHeight, document.documentElement.clientHeight];
-  if (window.visualViewport) h.push(window.visualViewport.height);
-  return Math.min(...h.filter(v => v > 0)) - 2;
-}
-function viewW() {
-  const w = [window.innerWidth, document.documentElement.clientWidth];
-  if (window.visualViewport) w.push(window.visualViewport.width);
-  return Math.min(...w.filter(v => v > 0));
-}
 function fitToScreen() {
   const wrapper = document.getElementById('scaleWrapper');
   wrapper.style.transform = 'none';
-  wrapper.style.marginBottom = '0';
   requestAnimationFrame(() => {
     const cw = wrapper.scrollWidth, ch = wrapper.scrollHeight;
-    const scale = Math.min(3, viewW() / cw, viewH() / ch);
+    const scale = Math.min(3, window.innerWidth / cw, window.innerHeight / ch);
     wrapper.style.transform = `scale(${scale})`;
-    wrapper.style.marginBottom = (ch * scale - ch) + 'px';
     wrapper.style.opacity = '1';
   });
 }
@@ -228,9 +206,7 @@ function resetAll() {
 buildAll();
 if (SPLIT) switchTab(0);
 window.addEventListener('load', () => setTimeout(() => { sizeColumns(); fitToScreen(); }, 50));
-window.addEventListener('resize', () => { setTimeout(fitToScreen, 50); setTimeout(fitToScreen, 400); });
-window.addEventListener('orientationchange', () => { setTimeout(fitToScreen, 100); setTimeout(fitToScreen, 500); setTimeout(fitToScreen, 1000); });
-if (window.visualViewport) window.visualViewport.addEventListener('resize', () => setTimeout(fitToScreen, 50));
+window.addEventListener('resize', () => setTimeout(fitToScreen, 50));
 document.addEventListener('click', e => {
   if (!e.target.closest('.chip') && !e.target.closest('.drop-zone')) deselectAll();
 });
