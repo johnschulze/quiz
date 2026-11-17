@@ -6,8 +6,8 @@
 <title>Vocabulary – don’t freak out!</title>
 <style>
 * { box-sizing: border-box; margin: 0; padding: 0; }
-html { overflow-x: hidden; overflow-y: auto; }
-body { min-height: 100%; font-family: system-ui, sans-serif; background: #ffffff; color: #1a1a1a; display: flex; justify-content: center; align-items: flex-start; }
+html, body { height: 100%; overflow: hidden; }
+body { font-family: system-ui, sans-serif; background: #ffffff; color: #1a1a1a; display: flex; justify-content: center; align-items: flex-start; }
 #scaleWrapper { padding: 0.3rem 0.5rem 0.4rem; transform-origin: top center; opacity: 0; }
 .quiz-header { text-align: center; margin-bottom: 0.2rem; }
 .quiz-header h1 { font-size: 1.2rem; font-weight: 600; }
@@ -53,26 +53,26 @@ body { min-height: 100%; font-family: system-ui, sans-serif; background: #ffffff
 <script>
 // [Word, Definition] – Definition fix links, leerer Slot Mitte, Wort als Chip rechts
 const PAIRS = [
-  ["to adopt", "to take a child into your family as your own (adoptieren)"],
+  ["to freak out", "to suddenly become very scared, angry or excited (ausflippen)"],
   ["adoption agency", "an organization that finds new families for children (Adoptionsagentur)"],
-  ["background", "the family, place and life that somebody comes from (Herkunft)"],
   ["double", "a person who looks exactly like another person (Doppelgänger)"],
-  ["research", "a careful study to find out facts (Recherche)"],
-  ["to introduce oneself", "to tell somebody who you are (sich vorstellen)"],
+  ["research", "a careful search to find out facts (Recherche)"],
+  ["background", "the family, place and life that somebody comes from (Herkunft)"],
   ["to have a lot in common", "to be alike in many ways (viel gemeinsam haben)"],
   ["to adore", "to love something very much (sehr gern mögen)"],
-  ["to suspect", "to think something is true, but you are not sure (vermuten)"],
-  ["to confirm", "to show that something is true (bestätigen)"],
+  ["lactose intolerant", "getting sick when you eat or drink milk products (laktoseintolerant)"],
+  ["to suspect", "to think that something is true, but you are not sure (vermuten)"],
+  ["to confirm", "to show that something is really true (bestätigen)"],
   ["identical twins", "two children born together who look exactly alike (eineiige Zwillinge)"],
-  ["to give up somebody for adoption", "to let other people adopt your child (zur Adoption freigeben)"],
+  ["to give somebody up for adoption", "to let other people take your child as their own (zur Adoption freigeben)"],
+  ["separately", "not together (getrennt)"],
+  ["adoptive parents", "a mother and father who take a child into their family as their own (Adoptiveltern)"],
   ["birth mother", "the woman who gave birth to a child (leibliche Mutter)"],
   ["to raise funds", "to collect money for a project (Geld sammeln)"],
-  ["to track", "to follow something step by step (begleiten)"],
-  ["to prove", "to show that something is definitely true (beweisen)"],
+  ["documentary", "a film about real people and real events (Dokumentarfilm)"],
+  ["to track", "to follow something step by step (begleiten, verfolgen)"],
   ["release", "the moment when something is shown to the public (Veröffentlichung)"],
-  ["to grow closer", "to become more friendly with each other (sich näherkommen)"],
-  ["to find out", "to learn a fact (herausfinden)"],
-  ["separately", "not together (getrennt)"]
+  ["to prove", "to show that something is definitely true (beweisen)"]
 ];
 const SPLIT = true;
 const LEFT = 1, CHIP = 0;
@@ -183,25 +183,13 @@ function sizeColumns() {
   wr.style.transform = savedTransform;
 }
 
-function viewH() {
-  const h = [window.innerHeight, document.documentElement.clientHeight];
-  if (window.visualViewport) h.push(window.visualViewport.height);
-  return Math.min(...h.filter(v => v > 0)) - 2;
-}
-function viewW() {
-  const w = [window.innerWidth, document.documentElement.clientWidth];
-  if (window.visualViewport) w.push(window.visualViewport.width);
-  return Math.min(...w.filter(v => v > 0));
-}
 function fitToScreen() {
   const wrapper = document.getElementById('scaleWrapper');
   wrapper.style.transform = 'none';
-  wrapper.style.marginBottom = '0';
   requestAnimationFrame(() => {
     const cw = wrapper.scrollWidth, ch = wrapper.scrollHeight;
-    const scale = Math.min(3, viewW() / cw, viewH() / ch);
+    const scale = Math.min(3, window.innerWidth / cw, window.innerHeight / ch);
     wrapper.style.transform = `scale(${scale})`;
-    wrapper.style.marginBottom = (ch * scale - ch) + 'px';
     wrapper.style.opacity = '1';
   });
 }
@@ -228,9 +216,7 @@ function resetAll() {
 buildAll();
 if (SPLIT) switchTab(0);
 window.addEventListener('load', () => setTimeout(() => { sizeColumns(); fitToScreen(); }, 50));
-window.addEventListener('resize', () => { setTimeout(fitToScreen, 50); setTimeout(fitToScreen, 400); });
-window.addEventListener('orientationchange', () => { setTimeout(fitToScreen, 100); setTimeout(fitToScreen, 500); setTimeout(fitToScreen, 1000); });
-if (window.visualViewport) window.visualViewport.addEventListener('resize', () => setTimeout(fitToScreen, 50));
+window.addEventListener('resize', () => setTimeout(fitToScreen, 50));
 document.addEventListener('click', e => {
   if (!e.target.closest('.chip') && !e.target.closest('.drop-zone')) deselectAll();
 });

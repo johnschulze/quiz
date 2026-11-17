@@ -6,8 +6,8 @@
 <title>Vocabulary – The diary of a winner</title>
 <style>
 * { box-sizing: border-box; margin: 0; padding: 0; }
-html { overflow-x: hidden; overflow-y: auto; }
-body { min-height: 100%; font-family: system-ui, sans-serif; background: #ffffff; color: #1a1a1a; display: flex; justify-content: center; align-items: flex-start; }
+html, body { height: 100%; overflow: hidden; }
+body { font-family: system-ui, sans-serif; background: #ffffff; color: #1a1a1a; display: flex; justify-content: center; align-items: flex-start; }
 #scaleWrapper { padding: 0.3rem 0.5rem 0.4rem; transform-origin: top center; opacity: 0; }
 .quiz-header { text-align: center; margin-bottom: 0.2rem; }
 .quiz-header h1 { font-size: 1.2rem; font-weight: 600; }
@@ -53,26 +53,26 @@ body { min-height: 100%; font-family: system-ui, sans-serif; background: #ffffff
 <script>
 // [Word, Definition] – Definition fix links, leerer Slot Mitte, Wort als Chip rechts
 const PAIRS = [
-  ["mental exercise", "training for your head, not for your body (mentale Übung)"],
-  ["kind", "a type or sort of something (Art, Sorte)"],
-  ["to lose weight", "to become lighter (abnehmen)"],
-  ["confidence", "the feeling that you can do things well (Selbstvertrauen)"],
-  ["to give up", "to stop trying (aufgeben)"],
+  ["to record", "to write down or film something so that you can look at it later (festhalten)"],
   ["progress", "getting better step by step (Fortschritt)"],
-  ["to keep a record of something", "to write down what happens (etw. festhalten)"],
+  ["to scroll down", "to move down a page on a screen (nach unten scrollen)"],
+  ["entry", "one text or photo that you add to a diary (Eintrag)"],
+  ["lazy", "not wanting to work or to do anything active (faul)"],
+  ["to get a life", "to start doing more interesting things (sich ein Leben aufbauen)"],
+  ["to get your life in order", "to make your life organized and under control (sein Leben in Ordnung bringen)"],
+  ["mental exercise", "training for your mind, not for your body (mentale Übung)"],
+  ["to improve", "to make something better (verbessern)"],
+  ["confidence", "the feeling that you can do things well (Selbstvertrauen)"],
+  ["to lose weight", "to become lighter and thinner (abnehmen)"],
+  ["muscle", "a part of your body that gets bigger when you train (Muskel)"],
+  ["energetic", "full of power and wanting to be active (energiegeladen)"],
+  ["to give up", "to stop trying (aufgeben)"],
+  ["motivated", "really wanting to do something (motiviert)"],
   ["tag line", "a short text under a photo or post (Bildunterschrift)"],
   ["to turn up", "to come to a place or an event (auftauchen, erscheinen)"],
-  ["pressure", "the feeling that you must do something (Druck)"],
-  ["lonely", "sad because you are alone (einsam)"],
-  ["entry", "one text or photo that you add to a diary (Eintrag)"],
-  ["to get something in order", "to make things clear and tidy (etw. in Ordnung bringen)"],
-  ["to develop", "to make something grow (aufbauen, entwickeln)"],
-  ["to improve", "to make something better (verbessern)"],
-  ["diary", "a book where you write about your day (Tagebuch)"],
-  ["excuse", "a reason you give when you do not want to do something (Ausrede)"],
-  ["guy", "a man, in informal speech (Kerl, Typ)"],
-  ["to get a life", "to start doing more interesting things (sich ein Leben aufbauen)"],
-  ["to spend time", "to use your time for something (Zeit verbringen)"]
+  ["pressure", "the feeling that you must do something well (Druck)"],
+  ["to accept somebody", "to welcome somebody into a group as they are (jdn. akzeptieren)"],
+  ["atmosphere", "the feeling that a place or a group of people gives you (Stimmung)"]
 ];
 const SPLIT = true;
 const LEFT = 1, CHIP = 0;
@@ -183,25 +183,13 @@ function sizeColumns() {
   wr.style.transform = savedTransform;
 }
 
-function viewH() {
-  const h = [window.innerHeight, document.documentElement.clientHeight];
-  if (window.visualViewport) h.push(window.visualViewport.height);
-  return Math.min(...h.filter(v => v > 0)) - 2;
-}
-function viewW() {
-  const w = [window.innerWidth, document.documentElement.clientWidth];
-  if (window.visualViewport) w.push(window.visualViewport.width);
-  return Math.min(...w.filter(v => v > 0));
-}
 function fitToScreen() {
   const wrapper = document.getElementById('scaleWrapper');
   wrapper.style.transform = 'none';
-  wrapper.style.marginBottom = '0';
   requestAnimationFrame(() => {
     const cw = wrapper.scrollWidth, ch = wrapper.scrollHeight;
-    const scale = Math.min(3, viewW() / cw, viewH() / ch);
+    const scale = Math.min(3, window.innerWidth / cw, window.innerHeight / ch);
     wrapper.style.transform = `scale(${scale})`;
-    wrapper.style.marginBottom = (ch * scale - ch) + 'px';
     wrapper.style.opacity = '1';
   });
 }
@@ -228,9 +216,7 @@ function resetAll() {
 buildAll();
 if (SPLIT) switchTab(0);
 window.addEventListener('load', () => setTimeout(() => { sizeColumns(); fitToScreen(); }, 50));
-window.addEventListener('resize', () => { setTimeout(fitToScreen, 50); setTimeout(fitToScreen, 400); });
-window.addEventListener('orientationchange', () => { setTimeout(fitToScreen, 100); setTimeout(fitToScreen, 500); setTimeout(fitToScreen, 1000); });
-if (window.visualViewport) window.visualViewport.addEventListener('resize', () => setTimeout(fitToScreen, 50));
+window.addEventListener('resize', () => setTimeout(fitToScreen, 50));
 document.addEventListener('click', e => {
   if (!e.target.closest('.chip') && !e.target.closest('.drop-zone')) deselectAll();
 });

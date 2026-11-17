@@ -6,8 +6,8 @@
 <title>Vocabulary – a great day out</title>
 <style>
 * { box-sizing: border-box; margin: 0; padding: 0; }
-html { overflow-x: hidden; overflow-y: auto; }
-body { min-height: 100%; font-family: system-ui, sans-serif; background: #ffffff; color: #1a1a1a; display: flex; justify-content: center; align-items: flex-start; }
+html, body { height: 100%; overflow: hidden; }
+body { font-family: system-ui, sans-serif; background: #ffffff; color: #1a1a1a; display: flex; justify-content: center; align-items: flex-start; }
 #scaleWrapper { padding: 0.3rem 0.5rem 0.4rem; transform-origin: top center; opacity: 0; }
 .quiz-header { text-align: center; margin-bottom: 0.2rem; }
 .quiz-header h1 { font-size: 1.2rem; font-weight: 600; }
@@ -53,26 +53,26 @@ body { min-height: 100%; font-family: system-ui, sans-serif; background: #ffffff
 <script>
 // [Word, Definition] – Definition fix links, leerer Slot Mitte, Wort als Chip rechts
 const PAIRS = [
+  ["mysteriously", "in a strange and secret way (geheimnisvoll)"],
   ["treat", "something special that you give somebody as a nice surprise (besondere Freude)"],
-  ["polite", "behaving in a way that is nice and shows good manners (höflich)"],
+  ["as it turned out", "as people found out later (wie sich herausstellte)"],
+  ["patiently", "calmly and without getting angry (geduldig)"],
   ["to disappoint", "to make somebody unhappy because you did not do what they hoped for (enttäuschen)"],
   ["crowd", "a large group of people in one place (Menschenmenge)"],
+  ["terrifying", "very, very scary (furchterregend)"],
+  ["to be scared of heights", "to feel afraid in high places (Höhenangst haben)"],
+  ["steep", "going up or down very quickly (steil)"],
   ["to stamp", "to hit the ground hard with your foot (stampfen)"],
   ["deafening", "so loud that you cannot hear anything else (ohrenbetäubend)"],
-  ["to knock somebody down", "to hit somebody so that they fall to the ground (jdn. umstoßen)"],
-  ["violent", "using strong physical force to hurt people (gewalttätig)"],
-  ["to cheer", "to shout to show that you like somebody or something (jubeln)"],
-  ["thrilling", "very exciting (spannend)"],
-  ["national anthem", "the official song of a country (Nationalhymne)"],
-  ["fireworks", "bright lights and loud bangs in the sky at a party (Feuerwerk)"],
-  ["huge", "extremely big (riesig)"],
-  ["freezing", "very, very cold (eiskalt)"],
-  ["seat", "a place where you can sit (Sitzplatz)"],
-  ["score", "the number of points that a team has got in a game (Spielstand)"],
-  ["to be scared of", "to feel afraid of somebody or something (Angst haben vor)"],
-  ["season", "a part of the year when a sport is played (Saison)"],
+  ["to rush", "to go somewhere very quickly (eilen)"],
+  ["bucket", "a large round container (Eimer)"],
+  ["opening ceremony", "a big show at the start of an event (Eröffnungsfeier)"],
+  ["brutal", "very violent and hard (brutal)"],
   ["opposing", "playing against you in a game (gegnerisch)"],
-  ["quarter", "one of four parts of a game (Viertel)"]
+  ["burst", "a short time of sudden strong activity (Ausbruch, Schub)"],
+  ["to knock somebody down", "to hit somebody so that they fall to the ground (jdn. umstoßen)"],
+  ["bunch", "a group of people (Haufen, Gruppe)"],
+  ["thrilling", "very exciting (spannend)"]
 ];
 const SPLIT = true;
 const LEFT = 1, CHIP = 0;
@@ -183,25 +183,13 @@ function sizeColumns() {
   wr.style.transform = savedTransform;
 }
 
-function viewH() {
-  const h = [window.innerHeight, document.documentElement.clientHeight];
-  if (window.visualViewport) h.push(window.visualViewport.height);
-  return Math.min(...h.filter(v => v > 0)) - 2;
-}
-function viewW() {
-  const w = [window.innerWidth, document.documentElement.clientWidth];
-  if (window.visualViewport) w.push(window.visualViewport.width);
-  return Math.min(...w.filter(v => v > 0));
-}
 function fitToScreen() {
   const wrapper = document.getElementById('scaleWrapper');
   wrapper.style.transform = 'none';
-  wrapper.style.marginBottom = '0';
   requestAnimationFrame(() => {
     const cw = wrapper.scrollWidth, ch = wrapper.scrollHeight;
-    const scale = Math.min(3, viewW() / cw, viewH() / ch);
+    const scale = Math.min(3, window.innerWidth / cw, window.innerHeight / ch);
     wrapper.style.transform = `scale(${scale})`;
-    wrapper.style.marginBottom = (ch * scale - ch) + 'px';
     wrapper.style.opacity = '1';
   });
 }
@@ -228,9 +216,7 @@ function resetAll() {
 buildAll();
 if (SPLIT) switchTab(0);
 window.addEventListener('load', () => setTimeout(() => { sizeColumns(); fitToScreen(); }, 50));
-window.addEventListener('resize', () => { setTimeout(fitToScreen, 50); setTimeout(fitToScreen, 400); });
-window.addEventListener('orientationchange', () => { setTimeout(fitToScreen, 100); setTimeout(fitToScreen, 500); setTimeout(fitToScreen, 1000); });
-if (window.visualViewport) window.visualViewport.addEventListener('resize', () => setTimeout(fitToScreen, 50));
+window.addEventListener('resize', () => setTimeout(fitToScreen, 50));
 document.addEventListener('click', e => {
   if (!e.target.closest('.chip') && !e.target.closest('.drop-zone')) deselectAll();
 });

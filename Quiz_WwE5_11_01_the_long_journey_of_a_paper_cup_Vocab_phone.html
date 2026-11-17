@@ -6,8 +6,8 @@
 <title>Vocabulary – the long journey of a paper cup</title>
 <style>
 * { box-sizing: border-box; margin: 0; padding: 0; }
-html { overflow-x: hidden; overflow-y: auto; }
-body { min-height: 100%; font-family: system-ui, sans-serif; background: #ffffff; color: #1a1a1a; display: flex; justify-content: center; align-items: flex-start; }
+html, body { height: 100%; overflow: hidden; }
+body { font-family: system-ui, sans-serif; background: #ffffff; color: #1a1a1a; display: flex; justify-content: center; align-items: flex-start; }
 #scaleWrapper { padding: 0.3rem 0.5rem 0.4rem; transform-origin: top center; opacity: 0; }
 .quiz-header { text-align: center; margin-bottom: 0.2rem; }
 .quiz-header h1 { font-size: 1.2rem; font-weight: 600; }
@@ -54,25 +54,25 @@ body { min-height: 100%; font-family: system-ui, sans-serif; background: #ffffff
 // [Word, Definition] – Definition fix links, leerer Slot Mitte, Wort als Chip rechts
 const PAIRS = [
   ["disposable", "made to be used once and then thrown away (Einweg-)"],
-  ["log", "a thick piece of a tree that has been cut (Baumstamm)"],
-  ["to unload", "to take things off a ship or truck (ausladen)"],
-  ["dock", "the place at a port where ships stop to be loaded (Kai)"],
-  ["to squeeze", "to press something hard from all sides (pressen)"],
-  ["to bleach", "to make something white with chemicals (bleichen)"],
+  ["complicated", "difficult to understand or to do (kompliziert)"],
+  ["to cut down", "to make a tree fall by cutting it (fällen)"],
+  ["chipping plant", "a factory that cuts wood into small pieces (Hackschnitzelwerk)"],
+  ["wood chips", "very small pieces of wood (Holzschnitzel)"],
+  ["steel", "a very hard metal (Stahl)"],
+  ["tiny", "very, very small (winzig)"],
+  ["pulp", "a soft wet mixture of wood and water for making paper (Zellstoff)"],
+  ["to unload", "to take things off a ship or a truck (ausladen)"],
+  ["to process", "to change something in a factory (verarbeiten)"],
+  ["to treat", "to put chemicals on something to change it (behandeln)"],
+  ["paper mill", "a factory where paper is made (Papierfabrik)"],
+  ["dock", "the place at a port where ships stop (Kai)"],
+  ["to spray", "to put liquid onto something in very small drops (sprühen)"],
+  ["to squeeze", "to press something hard from both sides (pressen)"],
+  ["roller", "a heavy round tube that turns and presses things flat (Walze)"],
   ["to coat", "to cover something with a thin layer of another material (beschichten)"],
-  ["landfill", "a huge place where rubbish is buried (Mülldeponie)"],
-  ["shipping container", "a very big metal box for goods that goes on a ship (Seecontainer)"],
-  ["thirsty", "wanting to drink something (durstig)"],
-  ["rubbish", "things that you throw away because you do not need them (Müll)"],
-  ["to pack", "to put things into a box or bag (verpacken)"],
-  ["environment", "nature, air, water and land around us (Umwelt)"],
-  ["to deliver", "to bring goods to a person or place (liefern)"],
-  ["goods", "things that are made to be sold (Waren)"],
-  ["to reduce", "to make something smaller in size or amount (verringern)"],
-  ["solution", "an answer to a problem (Lösung)"],
-  ["consumer", "a person who buys and uses things (Verbraucher)"],
-  ["to favour", "to prefer something and think that it is best (bevorzugen)"],
-  ["waste", "things that are left over and not used (Abfall)"]
+  ["cardboard", "thick, stiff paper for making boxes (Pappe)"],
+  ["warehouse", "a big building where goods are kept before they are sold (Lagerhalle)"],
+  ["landfill", "a huge place where garbage is buried (Mülldeponie)"]
 ];
 const SPLIT = true;
 const LEFT = 1, CHIP = 0;
@@ -183,25 +183,13 @@ function sizeColumns() {
   wr.style.transform = savedTransform;
 }
 
-function viewH() {
-  const h = [window.innerHeight, document.documentElement.clientHeight];
-  if (window.visualViewport) h.push(window.visualViewport.height);
-  return Math.min(...h.filter(v => v > 0)) - 2;
-}
-function viewW() {
-  const w = [window.innerWidth, document.documentElement.clientWidth];
-  if (window.visualViewport) w.push(window.visualViewport.width);
-  return Math.min(...w.filter(v => v > 0));
-}
 function fitToScreen() {
   const wrapper = document.getElementById('scaleWrapper');
   wrapper.style.transform = 'none';
-  wrapper.style.marginBottom = '0';
   requestAnimationFrame(() => {
     const cw = wrapper.scrollWidth, ch = wrapper.scrollHeight;
-    const scale = Math.min(3, viewW() / cw, viewH() / ch);
+    const scale = Math.min(3, window.innerWidth / cw, window.innerHeight / ch);
     wrapper.style.transform = `scale(${scale})`;
-    wrapper.style.marginBottom = (ch * scale - ch) + 'px';
     wrapper.style.opacity = '1';
   });
 }
@@ -228,9 +216,7 @@ function resetAll() {
 buildAll();
 if (SPLIT) switchTab(0);
 window.addEventListener('load', () => setTimeout(() => { sizeColumns(); fitToScreen(); }, 50));
-window.addEventListener('resize', () => { setTimeout(fitToScreen, 50); setTimeout(fitToScreen, 400); });
-window.addEventListener('orientationchange', () => { setTimeout(fitToScreen, 100); setTimeout(fitToScreen, 500); setTimeout(fitToScreen, 1000); });
-if (window.visualViewport) window.visualViewport.addEventListener('resize', () => setTimeout(fitToScreen, 50));
+window.addEventListener('resize', () => setTimeout(fitToScreen, 50));
 document.addEventListener('click', e => {
   if (!e.target.closest('.chip') && !e.target.closest('.drop-zone')) deselectAll();
 });

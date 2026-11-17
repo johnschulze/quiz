@@ -6,8 +6,8 @@
 <title>Vocabulary – getting back on track</title>
 <style>
 * { box-sizing: border-box; margin: 0; padding: 0; }
-html { overflow-x: hidden; overflow-y: auto; }
-body { min-height: 100%; font-family: system-ui, sans-serif; background: #ffffff; color: #1a1a1a; display: flex; justify-content: center; align-items: flex-start; }
+html, body { height: 100%; overflow: hidden; }
+body { font-family: system-ui, sans-serif; background: #ffffff; color: #1a1a1a; display: flex; justify-content: center; align-items: flex-start; }
 #scaleWrapper { padding: 0.3rem 0.5rem 0.4rem; transform-origin: top center; opacity: 0; }
 .quiz-header { text-align: center; margin-bottom: 0.2rem; }
 .quiz-header h1 { font-size: 1.2rem; font-weight: 600; }
@@ -53,26 +53,26 @@ body { min-height: 100%; font-family: system-ui, sans-serif; background: #ffffff
 <script>
 // [Word, Definition] – Definition fix links, leerer Slot Mitte, Wort als Chip rechts
 const PAIRS = [
-  ["to beg", "to ask people for money (betteln)"],
-  ["twin", "one of two children born at the same time to the same mother (Zwilling)"],
-  ["housework", "cleaning, washing and other jobs at home (Hausarbeit)"],
-  ["to babysit", "to look after children while their parents are out (babysitten)"],
+  ["to get back on track", "to start living a normal, good life again (wieder auf die Beine kommen)"],
+  ["to drop out of school", "to leave school before you finish it (die Schule abbrechen)"],
+  ["to live rough", "to live on the streets without a home (auf der Straße leben)"],
+  ["to turn your life around", "to change your life completely so that it gets better (sein Leben umkrempeln)"],
+  ["to go off with somebody", "to leave your family to live with a new partner (mit jdm. durchbrennen)"],
+  ["to fall behind", "to not learn as fast as the other students (zurückfallen)"],
   ["to be supposed to", "to have to do something because of a rule or a plan (sollen)"],
+  ["to make the most of something", "to use a chance as much as possible (das Beste aus etw. machen)"],
   ["to throw somebody out", "to make somebody leave your home (jdn. rauswerfen)"],
   ["to take somebody in", "to let somebody live in your home (jdn. aufnehmen)"],
-  ["to harm", "to hurt somebody or damage something (verletzen, schaden)"],
-  ["social worker", "a person whose job is to help people with problems in their lives (Sozialarbeiter)"],
-  ["to hang out", "to spend free time with friends (abhängen)"],
-  ["grateful", "feeling thankful to somebody for something (dankbar)"],
+  ["to beg", "to ask strangers for money or food (betteln)"],
   ["goal", "something that you want to achieve in your life (Ziel)"],
-  ["to apply for", "to ask officially for a job or a place at a school (sich bewerben um)"],
-  ["to turn out", "to end in a certain way (sich herausstellen, werden)"],
-  ["impressed", "feeling great respect for somebody because of what they did (beeindruckt)"],
-  ["to realize", "to suddenly understand something (erkennen, begreifen)"],
-  ["rule", "something that tells you what you must or must not do (Regel)"],
-  ["to give a talk", "to speak to a group of people about a topic (einen Vortrag halten)"],
-  ["dangerous", "likely to hurt you or to cause an accident (gefährlich)"],
-  ["experience", "things you have done or seen that taught you something (Erfahrung)"]
+  ["to harm", "to hurt somebody (verletzen, schaden)"],
+  ["to throw your life away", "to waste your life with bad decisions (sein Leben wegwerfen)"],
+  ["drop-in centre", "a place where people can go for help without an appointment (Anlaufstelle)"],
+  ["social worker", "a person whose job is to help people with problems in their lives (Sozialarbeiter)"],
+  ["grateful", "feeling thankful to somebody for something (dankbar)"],
+  ["to hang out", "to spend free time with friends (abhängen)"],
+  ["resit", "an exam that you take again because you failed it (Nachprüfung)"],
+  ["to apply for", "to ask officially for a job or a place at a school (sich bewerben um)"]
 ];
 const SPLIT = true;
 const LEFT = 1, CHIP = 0;
@@ -183,25 +183,13 @@ function sizeColumns() {
   wr.style.transform = savedTransform;
 }
 
-function viewH() {
-  const h = [window.innerHeight, document.documentElement.clientHeight];
-  if (window.visualViewport) h.push(window.visualViewport.height);
-  return Math.min(...h.filter(v => v > 0)) - 2;
-}
-function viewW() {
-  const w = [window.innerWidth, document.documentElement.clientWidth];
-  if (window.visualViewport) w.push(window.visualViewport.width);
-  return Math.min(...w.filter(v => v > 0));
-}
 function fitToScreen() {
   const wrapper = document.getElementById('scaleWrapper');
   wrapper.style.transform = 'none';
-  wrapper.style.marginBottom = '0';
   requestAnimationFrame(() => {
     const cw = wrapper.scrollWidth, ch = wrapper.scrollHeight;
-    const scale = Math.min(3, viewW() / cw, viewH() / ch);
+    const scale = Math.min(3, window.innerWidth / cw, window.innerHeight / ch);
     wrapper.style.transform = `scale(${scale})`;
-    wrapper.style.marginBottom = (ch * scale - ch) + 'px';
     wrapper.style.opacity = '1';
   });
 }
@@ -228,9 +216,7 @@ function resetAll() {
 buildAll();
 if (SPLIT) switchTab(0);
 window.addEventListener('load', () => setTimeout(() => { sizeColumns(); fitToScreen(); }, 50));
-window.addEventListener('resize', () => { setTimeout(fitToScreen, 50); setTimeout(fitToScreen, 400); });
-window.addEventListener('orientationchange', () => { setTimeout(fitToScreen, 100); setTimeout(fitToScreen, 500); setTimeout(fitToScreen, 1000); });
-if (window.visualViewport) window.visualViewport.addEventListener('resize', () => setTimeout(fitToScreen, 50));
+window.addEventListener('resize', () => setTimeout(fitToScreen, 50));
 document.addEventListener('click', e => {
   if (!e.target.closest('.chip') && !e.target.closest('.drop-zone')) deselectAll();
 });

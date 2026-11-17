@@ -6,8 +6,8 @@
 <title>Vocabulary – livestreaming</title>
 <style>
 * { box-sizing: border-box; margin: 0; padding: 0; }
-html { overflow-x: hidden; overflow-y: auto; }
-body { min-height: 100%; font-family: system-ui, sans-serif; background: #ffffff; color: #1a1a1a; display: flex; justify-content: center; align-items: flex-start; }
+html, body { height: 100%; overflow: hidden; }
+body { font-family: system-ui, sans-serif; background: #ffffff; color: #1a1a1a; display: flex; justify-content: center; align-items: flex-start; }
 #scaleWrapper { padding: 0.3rem 0.5rem 0.4rem; transform-origin: top center; opacity: 0; }
 .quiz-header { text-align: center; margin-bottom: 0.2rem; }
 .quiz-header h1 { font-size: 1.2rem; font-weight: 600; }
@@ -53,26 +53,26 @@ body { min-height: 100%; font-family: system-ui, sans-serif; background: #ffffff
 <script>
 // [Word, Definition] – Definition fix links, leerer Slot Mitte, Wort als Chip rechts
 const PAIRS = [
-  ["contributor", "a person who gives ideas or texts to a magazine or a website (Mitwirkender)"],
+  ["weird", "very strange and not normal (komisch, seltsam)"],
+  ["contributor", "a person who writes texts or ideas for a magazine or a website (Mitwirkender)"],
   ["to make a living", "to earn enough money to pay for your life (seinen Lebensunterhalt verdienen)"],
-  ["gift", "something that you give to somebody (Geschenk)"],
+  ["host", "a person who presents a show (Moderator)"],
+  ["to broadcast", "to send out a program on TV, radio or the internet (übertragen, senden)"],
+  ["subscriber", "a person who follows a channel regularly (Abonnent)"],
+  ["virtual", "existing only on a computer or online (virtuell)"],
   ["to convert", "to change something into another form (umwandeln)"],
-  ["tune", "a short piece of music that is easy to remember (Melodie)"],
-  ["demanding", "needing a lot of time, energy or skill (anspruchsvoll)"],
-  ["security", "protection from danger or from people who want to steal your data (Sicherheit)"],
-  ["to release", "to make something new available to the public (veröffentlichen)"],
-  ["the charts", "a list of the most popular songs of the week (die Charts)"],
-  ["gig", "a live concert by a musician or a band (Auftritt)"],
-  ["audience", "the people who watch or listen to a show (Publikum)"],
   ["trick", "a clever skill that surprises people (Kunststück)"],
   ["to take turns", "to do something one after the other (sich abwechseln)"],
-  ["weird", "very strange and not normal (komisch, seltsam)"],
-  ["soap opera", "a TV series about the lives of ordinary people (Seifenoper)"],
-  ["private", "only for you and not for other people to see (privat)"],
+  ["to upload", "to put a file from your computer onto the internet (hochladen)"],
+  ["to request", "to ask for something politely (anfragen, sich wünschen)"],
+  ["audience", "the people who watch or listen to a show (Publikum)"],
+  ["bills", "papers that tell you how much money you must pay (Rechnungen)"],
+  ["publicity", "attention from the public that makes you known (Werbung, Bekanntheit)"],
+  ["feedback", "what people tell you about how good your work is (Rückmeldung)"],
+  ["to release", "to make something new available to the public (veröffentlichen)"],
   ["lack", "not having enough of something (Mangel)"],
-  ["stressful", "making you feel worried and tired (belastend)"],
-  ["advice", "something that somebody tells you to help you decide what to do (Rat)"],
-  ["leisure", "time when you are not working (Freizeit)"]
+  ["stalking", "following and watching somebody again and again in a scary way (Stalking)"],
+  ["identity theft", "when somebody steals your personal data and pretends to be you (Identitätsdiebstahl)"]
 ];
 const SPLIT = true;
 const LEFT = 1, CHIP = 0;
@@ -183,25 +183,13 @@ function sizeColumns() {
   wr.style.transform = savedTransform;
 }
 
-function viewH() {
-  const h = [window.innerHeight, document.documentElement.clientHeight];
-  if (window.visualViewport) h.push(window.visualViewport.height);
-  return Math.min(...h.filter(v => v > 0)) - 2;
-}
-function viewW() {
-  const w = [window.innerWidth, document.documentElement.clientWidth];
-  if (window.visualViewport) w.push(window.visualViewport.width);
-  return Math.min(...w.filter(v => v > 0));
-}
 function fitToScreen() {
   const wrapper = document.getElementById('scaleWrapper');
   wrapper.style.transform = 'none';
-  wrapper.style.marginBottom = '0';
   requestAnimationFrame(() => {
     const cw = wrapper.scrollWidth, ch = wrapper.scrollHeight;
-    const scale = Math.min(3, viewW() / cw, viewH() / ch);
+    const scale = Math.min(3, window.innerWidth / cw, window.innerHeight / ch);
     wrapper.style.transform = `scale(${scale})`;
-    wrapper.style.marginBottom = (ch * scale - ch) + 'px';
     wrapper.style.opacity = '1';
   });
 }
@@ -228,9 +216,7 @@ function resetAll() {
 buildAll();
 if (SPLIT) switchTab(0);
 window.addEventListener('load', () => setTimeout(() => { sizeColumns(); fitToScreen(); }, 50));
-window.addEventListener('resize', () => { setTimeout(fitToScreen, 50); setTimeout(fitToScreen, 400); });
-window.addEventListener('orientationchange', () => { setTimeout(fitToScreen, 100); setTimeout(fitToScreen, 500); setTimeout(fitToScreen, 1000); });
-if (window.visualViewport) window.visualViewport.addEventListener('resize', () => setTimeout(fitToScreen, 50));
+window.addEventListener('resize', () => setTimeout(fitToScreen, 50));
 document.addEventListener('click', e => {
   if (!e.target.closest('.chip') && !e.target.closest('.drop-zone')) deselectAll();
 });

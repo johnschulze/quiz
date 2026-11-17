@@ -6,8 +6,8 @@
 <title>Vocabulary – living on less</title>
 <style>
 * { box-sizing: border-box; margin: 0; padding: 0; }
-html { overflow-x: hidden; overflow-y: auto; }
-body { min-height: 100%; font-family: system-ui, sans-serif; background: #ffffff; color: #1a1a1a; display: flex; justify-content: center; align-items: flex-start; }
+html, body { height: 100%; overflow: hidden; }
+body { font-family: system-ui, sans-serif; background: #ffffff; color: #1a1a1a; display: flex; justify-content: center; align-items: flex-start; }
 #scaleWrapper { padding: 0.3rem 0.5rem 0.4rem; transform-origin: top center; opacity: 0; }
 .quiz-header { text-align: center; margin-bottom: 0.2rem; }
 .quiz-header h1 { font-size: 1.2rem; font-weight: 600; }
@@ -53,26 +53,26 @@ body { min-height: 100%; font-family: system-ui, sans-serif; background: #ffffff
 <script>
 // [Word, Definition] – Definition fix links, leerer Slot Mitte, Wort als Chip rechts
 const PAIRS = [
-  ["to exploit", "to use people or things in an unfair way for your own profit (ausbeuten)"],
+  ["caravan", "a vehicle with beds that people can live in (Wohnwagen)"],
   ["smallholder", "a person who runs a tiny farm (Kleinbauer)"],
-  ["to adapt", "to change so that you fit a new situation (sich anpassen)"],
-  ["to hand in your notice", "to officially tell a boss that you are leaving a job (kündigen)"],
-  ["second-hand", "not new, owned by somebody before (gebraucht)"],
-  ["selfish", "caring only about yourself and not about other people (egoistisch)"],
+  ["wood-burning stove", "a metal box in which you burn wood to cook or to heat a room (Holzofen)"],
+  ["solar panel", "a flat thing on a roof that makes electricity from the sun (Solarmodul)"],
+  ["dependent on", "needing somebody or something to live (abhängig von)"],
+  ["to exploit", "to use people or things in an unfair way for your own profit (ausbeuten)"],
+  ["consumer goods", "things like clothes, phones and cars that people buy (Konsumgüter)"],
   ["accommodation", "a place where you can live or stay (Unterkunft)"],
   ["in exchange for", "giving something and getting something else back (im Austausch für)"],
-  ["stove", "a kitchen device with a hot top for cooking (Herd, Ofen)"],
+  ["to hand in your notice", "to officially tell your boss that you are leaving your job (kündigen)"],
+  ["second-hand", "not new, owned by somebody before (gebraucht)"],
+  ["to challenge", "to question if something is right or good (infrage stellen)"],
+  ["to adapt", "to change so that you fit a new situation (sich anpassen)"],
   ["to figure out", "to find the answer to a problem by thinking (herausfinden)"],
   ["to survive", "to stay alive in a difficult situation (überleben)"],
-  ["dependent", "needing somebody or something to live or to be happy (abhängig)"],
-  ["ups and downs", "good and bad times in your life (Höhen und Tiefen)"],
-  ["to earn", "to get money for the work you do (verdienen)"],
-  ["to encourage", "to give somebody hope and courage to do something (ermutigen)"],
-  ["strange", "unusual and difficult to understand (seltsam)"],
-  ["criticism", "words that say what is wrong with somebody or something (Kritik)"],
-  ["to give up", "to stop doing or having something (aufgeben)"],
-  ["to challenge", "to question if something is right or good (infrage stellen)"],
-  ["to be sick of something", "to be tired of something because it has gone on too long (etw. satthaben)"]
+  ["herbs", "plants that you use to give food more taste (Kräuter)"],
+  ["baking soda", "a white powder that you use for baking and cleaning (Natron)"],
+  ["couldn't care less", "to not care at all about something (völlig egal sein)"],
+  ["selfish", "caring only about yourself and not about other people (egoistisch)"],
+  ["ups and downs", "good and bad times in your life (Höhen und Tiefen)"]
 ];
 const SPLIT = true;
 const LEFT = 1, CHIP = 0;
@@ -183,25 +183,13 @@ function sizeColumns() {
   wr.style.transform = savedTransform;
 }
 
-function viewH() {
-  const h = [window.innerHeight, document.documentElement.clientHeight];
-  if (window.visualViewport) h.push(window.visualViewport.height);
-  return Math.min(...h.filter(v => v > 0)) - 2;
-}
-function viewW() {
-  const w = [window.innerWidth, document.documentElement.clientWidth];
-  if (window.visualViewport) w.push(window.visualViewport.width);
-  return Math.min(...w.filter(v => v > 0));
-}
 function fitToScreen() {
   const wrapper = document.getElementById('scaleWrapper');
   wrapper.style.transform = 'none';
-  wrapper.style.marginBottom = '0';
   requestAnimationFrame(() => {
     const cw = wrapper.scrollWidth, ch = wrapper.scrollHeight;
-    const scale = Math.min(3, viewW() / cw, viewH() / ch);
+    const scale = Math.min(3, window.innerWidth / cw, window.innerHeight / ch);
     wrapper.style.transform = `scale(${scale})`;
-    wrapper.style.marginBottom = (ch * scale - ch) + 'px';
     wrapper.style.opacity = '1';
   });
 }
@@ -228,9 +216,7 @@ function resetAll() {
 buildAll();
 if (SPLIT) switchTab(0);
 window.addEventListener('load', () => setTimeout(() => { sizeColumns(); fitToScreen(); }, 50));
-window.addEventListener('resize', () => { setTimeout(fitToScreen, 50); setTimeout(fitToScreen, 400); });
-window.addEventListener('orientationchange', () => { setTimeout(fitToScreen, 100); setTimeout(fitToScreen, 500); setTimeout(fitToScreen, 1000); });
-if (window.visualViewport) window.visualViewport.addEventListener('resize', () => setTimeout(fitToScreen, 50));
+window.addEventListener('resize', () => setTimeout(fitToScreen, 50));
 document.addEventListener('click', e => {
   if (!e.target.closest('.chip') && !e.target.closest('.drop-zone')) deselectAll();
 });
